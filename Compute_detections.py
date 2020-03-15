@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def area_of(left_top, right_bottom):
     """
     Compute the areas of rectangles given two corners.
@@ -11,6 +12,7 @@ def area_of(left_top, right_bottom):
     """
     hw = np.clip(right_bottom - left_top, 0.0, None)
     return hw[..., 0] * hw[..., 1]
+
 
 def iou_of(boxes0, boxes1, eps=1e-5):
     """
@@ -29,6 +31,7 @@ def iou_of(boxes0, boxes1, eps=1e-5):
     area0 = area_of(boxes0[..., :2], boxes0[..., 2:])
     area1 = area_of(boxes1[..., :2], boxes1[..., 2:])
     return overlap_area / (area0 + area1 - overlap_area + eps)
+
 
 def hard_nms(box_scores, iou_threshold, top_k=-1, candidate_size=200):
     """
@@ -62,6 +65,7 @@ def hard_nms(box_scores, iou_threshold, top_k=-1, candidate_size=200):
         indexes = indexes[iou <= iou_threshold]
 
     return box_scores[picked, :]
+
 
 def predict(width, height, confidences, boxes, prob_threshold, iou_threshold=0.5, top_k=-1):
     """
