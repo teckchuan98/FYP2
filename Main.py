@@ -8,7 +8,7 @@ import onnxruntime as ort
 from Face_detector import detect
 
 def main():
-    video_capture = cv2.VideoCapture('london.mp4')
+    video_capture = cv2.VideoCapture('test.mp4')
     w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
 

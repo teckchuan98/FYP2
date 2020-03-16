@@ -1,6 +1,4 @@
-#train svm from dataset
-#export svm via pickle
-
+import dlib
 from imutils import paths
 import numpy as np
 import pickle
@@ -8,23 +6,26 @@ import cv2
 import os
 import onnxruntime as ort
 from Compute_detections import predict
-from sklearn.preprocessing import LabelEncoder
-from sklearn.svm import SVC
+from imutils import face_utils
+import tensorflow as tf
+
 
 ort_session = ort.InferenceSession('ultra_light_640.onnx')
 input_name = ort_session.get_inputs()[0].name
 embedder = cv2.dnn.readNetFromTorch("openface_nn4.small2.v1.t7")
+
+shape_predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
+fa = face_utils.facealigner.FaceAligner(shape_predictor, desiredFaceWidth=112, desiredLeftEye=(0.3, 0.3))
+
 
 print("Going through database")
 imagePaths = list(paths.list_images("dataset"))
 
 embeddings = []
 names = []
+images = []
 
 total = 0
-
-dirname = 'detected faces'
-os.mkdir(dirname)
 
 for (i, imagePath) in enumerate(imagePaths):
     print("processing image " + str(i+1) + "/" + str(len(imagePaths)))
@@ -46,40 +47,32 @@ for (i, imagePath) in enumerate(imagePaths):
 
     box = boxes[0]
     x1, y1, x2, y2 = box
-    crop = image[y1:y2, x1:x2]
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)   # convert to gray
 
-    (height, width) = crop.shape[:2]
-    if width < 20 or height < 20:
-        continue
+    # align and resize
+    aligned_face = fa.align(image, gray, dlib.rectangle(left=x1, top=y1, right=x2, bottom=y2))
+    aligned_face = cv2.resize(aligned_face, (112, 112))
 
-    blob = cv2.dnn.blobFromImage(crop, 1.0 / 255, (96, 96), (0, 0, 0), swapRB=True, crop=False)
-    embedder.setInput(blob)
-    vec = embedder.forward()
-
+    aligned_face = aligned_face - 127.5
+    aligned_face = aligned_face * 0.0078125
+    images.append(aligned_face)
     names.append(name)
-    embeddings.append(vec.flatten())
-    total += 1
 
-    #cv2.imwrite(os.path.join(dirname, name + "_" + str(i + 1) + ".jpg"), crop)
+with tf.Graph().as_default():
+    with tf.Session() as sess:
+        print("loading checkpoint ...")
+        saver = tf.train.import_meta_graph('models/mfn.ckpt.meta')
+        saver.restore(sess, 'models/mfn.ckpt')
 
-data = {"embeddings": embeddings, "names": names}
-#f = open("embeddings.pickle", "wb")
-#f.write(pickle.dumps(data))
-#f.close()
+        images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+        embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+        phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
 
-label_encoder = LabelEncoder()
-labels = label_encoder.fit_transform(data["names"])
-
-recognizer = SVC(C=1.0, kernel="linear", probability=True)
-recognizer.fit(data["embeddings"], labels)
-
-f = open("label_encoder.pickle", "wb")
-f.write(pickle.dumps(label_encoder))
-f.close()
-
-f = open("recognizer_model.pickle", "wb")
-f.write(pickle.dumps(recognizer))
-f.close()
+        feed_dict = {images_placeholder: images, phase_train_placeholder: False}
+        embeds = sess.run(embeddings, feed_dict=feed_dict)
+        with open("embeddings.pkl", "wb") as f:
+            pickle.dump((embeds, names), f)
+        print("Done!")
 
 
 
