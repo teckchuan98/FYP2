@@ -12,7 +12,6 @@ import tensorflow as tf
 
 ort_session = ort.InferenceSession('ultra_light_640.onnx')
 input_name = ort_session.get_inputs()[0].name
-embedder = cv2.dnn.readNetFromTorch("openface_nn4.small2.v1.t7")
 
 shape_predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 fa = face_utils.facealigner.FaceAligner(shape_predictor, desiredFaceWidth=112, desiredLeftEye=(0.3, 0.3))
@@ -26,6 +25,7 @@ names = []
 images = []
 
 total = 0
+os.mkdir("detected")
 
 for (i, imagePath) in enumerate(imagePaths):
     print("processing image " + str(i+1) + "/" + str(len(imagePaths)))
@@ -52,10 +52,12 @@ for (i, imagePath) in enumerate(imagePaths):
     # align and resize
     aligned_face = fa.align(image, gray, dlib.rectangle(left=x1, top=y1, right=x2, bottom=y2))
     aligned_face = cv2.resize(aligned_face, (112, 112))
+    cv2.imwrite("detected/" + str(i) + ".jpg", aligned_face)
 
     aligned_face = aligned_face - 127.5
     aligned_face = aligned_face * 0.0078125
     images.append(aligned_face)
+
     names.append(name)
 
 with tf.Graph().as_default():
