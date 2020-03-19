@@ -1,3 +1,6 @@
+
+from sklearn.preprocessing import LabelEncoder
+from sklearn.svm import SVC
 import dlib
 from imutils import paths
 import numpy as np
@@ -25,7 +28,7 @@ names = []
 images = []
 
 total = 0
-os.mkdir("detected")
+#os.mkdir("detected")
 
 for (i, imagePath) in enumerate(imagePaths):
     print("processing image " + str(i+1) + "/" + str(len(imagePaths)))
@@ -52,7 +55,7 @@ for (i, imagePath) in enumerate(imagePaths):
     # align and resize
     aligned_face = fa.align(image, gray, dlib.rectangle(left=x1, top=y1, right=x2, bottom=y2))
     aligned_face = cv2.resize(aligned_face, (112, 112))
-    cv2.imwrite("detected/" + str(i) + ".jpg", aligned_face)
+    #cv2.imwrite("detected/" + str(i) + ".jpg", aligned_face)
 
     aligned_face = aligned_face - 127.5
     aligned_face = aligned_face * 0.0078125
@@ -75,10 +78,25 @@ with tf.Graph().as_default():
         with open("embeddings.pkl", "wb") as f:
             pickle.dump((embeds, names), f)
         print("Done!")
+        
 
+data = {"embeddings": embeds, "names": names}
+print(data)
 
+le = LabelEncoder()
+labels = le.fit_transform(data["names"])
 
+recognizer = SVC(C=1.0, kernel="rbf", probability=True)
+recognizer.fit(data["embeddings"], labels)
 
+# write the actual face recognition model to disk
+f = open("recognizer.pkl", "wb")
+f.write(pickle.dumps(recognizer))
+f.close()
+# write the label encoder to disk
+f = open("label_encoder.pkl", "wb")
+f.write(pickle.dumps(le))
+f.close()
 
 
 
