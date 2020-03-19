@@ -78,7 +78,7 @@ with tf.Graph().as_default():
         with open("embeddings.pkl", "wb") as f:
             pickle.dump((embeds, names), f)
         print("Done!")
-        
+
 
 data = {"embeddings": embeds, "names": names}
 print(data)
@@ -86,7 +86,7 @@ print(data)
 le = LabelEncoder()
 labels = le.fit_transform(data["names"])
 
-recognizer = SVC(C=1.0, kernel="rbf", probability=True)
+recognizer = SVC(C=1.0, kernel="linear", probability=True)
 recognizer.fit(data["embeddings"], labels)
 
 # write the actual face recognition model to disk
