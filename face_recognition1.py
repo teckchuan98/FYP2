@@ -10,7 +10,6 @@ import tensorflow as tf
 import dlib
 from imutils import face_utils
 
-import face_recognition1
 
 def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
