@@ -50,25 +50,25 @@ def main():
                         embeds = compute_embeddings(faces, images_placeholder, sess, phase_train_placeholder, embeddings)
                         predictions = []
                         for embedding in embeds:
-                            embedding = embedding.reshape(1, -1)
-                            preds = recognizer.predict_proba(embedding)[0]
-                            j = np.argmax(preds)
-                            proba = preds[j]
-                            name = le.classes_[j]
+                            #embedding = embedding.reshape(1, -1)
+                            #preds = recognizer.predict_proba(embedding)[0]
+                            #j = np.argmax(preds)
+                            #proba = preds[j]
+                            #name = le.classes_[j]
 
-                            if proba > 0.8:
-                                predictions.append(name)
-                            else:
-                                predictions.append("unknown")
-
-                            #diff = np.subtract(saved_embeds, embedding)
-                            #dist = np.sum(np.square(diff), axis=1)
-                            #idx = np.argmin(dist)
-
-                            #if dist[idx] < threshold:
-                                #predictions.append(names[idx])
+                           #if proba > 0.8:
+                              #  predictions.append(name)
                             #else:
                                 #predictions.append("unknown")
+
+                            diff = np.subtract(saved_embeds, embedding)
+                            dist = np.sum(np.square(diff), axis=1)
+                            idx = np.argmin(dist)
+
+                            if dist[idx] < threshold:
+                                predictions.append(names[idx])
+                            else:
+                                predictions.append("unknown")
 
 
                         # draw

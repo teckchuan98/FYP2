@@ -1,4 +1,3 @@
-
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
 import dlib
@@ -97,7 +96,3 @@ f.close()
 f = open("label_encoder.pkl", "wb")
 f.write(pickle.dumps(le))
 f.close()
-
-
-
-
