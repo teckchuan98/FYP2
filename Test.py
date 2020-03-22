@@ -14,29 +14,25 @@ def main():
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
-    print(saved_embeds)
     while True:
         ret, frame = video_capture.read()
 
         if frame is not None:
 
             boxes, labels, probs = detect(frame, ort_session, input_name)
-            print(boxes)
             face_locations = []
             for i in boxes:
                 x1, y1, x2, y2 = i
                 y = (y1, x2, y2, x1)
                 face_locations.append(y)
-
             rgb_frame = frame[:, :, ::-1]
-            print(face_locations)
 
             #face_locations = face_recognition.face_locations(rgb_frame, model="hog")
-
             face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
 
             face_names = []
             for face_encoding in face_encodings:
+
                 # See if the face is a match for the known face(s)
                 diff = np.subtract(saved_embeds, face_encoding)
                 dist = np.sum(np.square(diff), axis=1)
