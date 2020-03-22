@@ -17,7 +17,7 @@ def detect(frame, ort_session, input_name):
     img = img.astype(np.float32)
 
     confidences, boxes = ort_session.run(None, {input_name: img})
-    boxes, labels, probs = predict(w, h, confidences, boxes, 0.7)
+    boxes, labels, probs = predict(w, h, confidences, boxes, 0.99)
 
     for i in range(boxes.shape[0]):
         box = boxes[i]

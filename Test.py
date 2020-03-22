@@ -2,19 +2,37 @@ import numpy as np
 import pickle
 import cv2
 import face_recognition
+import onnxruntime as ort
+from detector import detect
 
 
 def main():
-    video_capture = cv2.VideoCapture('rdj.mp4')
+    ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
+    input_name = ort_session.get_inputs()[0].name
+
+    video_capture = cv2.VideoCapture('chandler.mp4')
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
     print(saved_embeds)
     while True:
         ret, frame = video_capture.read()
+
         if frame is not None:
+
+            boxes, labels, probs = detect(frame, ort_session, input_name)
+            print(boxes)
+            face_locations = []
+            for i in boxes:
+                x1, y1, x2, y2 = i
+                y = (y1, x2, y2, x1)
+                face_locations.append(y)
+
             rgb_frame = frame[:, :, ::-1]
-            face_locations = face_recognition.face_locations(rgb_frame, model="cnn")
+            print(face_locations)
+
+            #face_locations = face_recognition.face_locations(rgb_frame, model="hog")
+
             face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
 
             face_names = []
@@ -24,7 +42,7 @@ def main():
                 dist = np.sum(np.square(diff), axis=1)
                 idx = np.argmin(dist)
 
-                if dist[idx] < 0.6:
+                if dist[idx] < 0.4:
                     face_names.append(names[idx])
                 else:
                     face_names.append("unknown")
