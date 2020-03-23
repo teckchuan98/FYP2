@@ -17,6 +17,8 @@ def main():
     while True:
         ret, frame = video_capture.read()
 
+        #frame = cv2.resize(frame, (320, 240))
+
         if frame is not None:
 
             boxes, labels, probs = detect(frame, ort_session, input_name)
@@ -29,7 +31,7 @@ def main():
 
             #face_locations = face_recognition.face_locations(rgb_frame, model="hog")
             face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
-
+            #face_encodings = []
             face_names = []
             for face_encoding in face_encodings:
 
