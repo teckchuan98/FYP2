@@ -48,35 +48,32 @@ def main():
                 diff = np.subtract(saved_embeds, face_encoding)
                 dist = np.sum(np.square(diff), axis=1)
 
-                rr = []
+                #rr = []
 
-                for distance in dist:
-                    if distance < 0.55:
-                        rr.append(True)
-                    else:
-                        rr.append(False)
+                #for distance in dist:
+                   # if distance < 0.55:
+                    #    rr.append(True)
+                    #else:
+                       # rr.append(False)
 
-                new_name = []
-                for result in range(len(rr)):
-                    if rr[result]:
-                        new_name.append(names[result])
+               # new_name = []
+               # for result in range(len(rr)):
+                #    if rr[result]:
+                   #     new_name.append(names[result])
 
-                print(new_name)
-                if len(new_name) > 0:
-                    person = Counter(new_name).most_common(1)
-                    face_names.append(person[0][0])
+               # print(new_name)
+               # if len(new_name) > 0:
+                  #  person = Counter(new_name).most_common(1)
+                  #  face_names.append(person[0][0])
+               # else:
+                   # face_names.append("unknown")
+
+                idx = np.argmin(dist)
+
+                if dist[idx] < 0.4:
+                    face_names.append(names[idx])
                 else:
                     face_names.append("unknown")
-
-
-
-
-                #idx = np.argmin(dist)
-
-                #if dist[idx] < 0.4:
-                    #face_names.append(names[idx])
-                #else:
-                    #face_names.append("unknown")
 
             for (x1, y1, x2, y2), name in zip(face_locations, face_names):
                 if name == "unknown":
