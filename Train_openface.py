@@ -34,7 +34,6 @@ for (i, imagePath) in enumerate(imagePaths):
     x1, y1, x2, y2 = boxes[0]
 
     face = image[y1:y2, x1:x2]
-    cv2.imwrite(str(i) + ".jpg", face)
     (fH, fW) = face.shape[:2]
     # ensure the face width and height are sufficiently large
     if fW < 20 or fH < 20:
