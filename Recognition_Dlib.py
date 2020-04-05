@@ -14,17 +14,12 @@ def main():
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
-    
     w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
     out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
     
     while True:
         ret, frame = video_capture.read()
-
-        #frame = cv2.resize(frame, (320, 240))
-
-
         if frame is not None:
 
             boxes, labels, probs = detect(frame, ort_session, input_name)
@@ -35,19 +30,10 @@ def main():
                 face_locations.append(y)
             rgb_frame = frame[:, :, ::-1]
 
-            #if len(face_locations) > 0:
-                #face_locations = [face_locations[0]]
-
-            #face_locations = face_recognition.face_locations(rgb_frame, model="hog")
             face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
-            #face_encodings = []
             face_names = []
 
-            #if len(face_encodings) > 0:
-                #face_encodings = [face_encodings[0]]
-
             for face_encoding in face_encodings:
-
                 # See if the face is a match for the known face(s)
                 diff = np.subtract(saved_embeds, face_encoding)
                 dist = np.sum(np.square(diff), axis=1)

@@ -36,18 +36,9 @@ def main():
                 face_locations.append(y)
             rgb_frame = frame[:, :, ::-1]
 
-            # if len(face_locations) > 0:
-            # face_locations = [face_locations[0]]
-
-            # face_locations = face_recognition.face_locations(rgb_frame, model="hog")
             face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
-
-            # face_encodings = []
             face_names = []
             probability = []
-
-            # if len(face_encodings) > 0:
-            # face_encodings = [face_encodings[0]]
 
             for face_encoding in face_encodings:
 

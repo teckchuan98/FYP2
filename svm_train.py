@@ -44,7 +44,3 @@ f = open("le.pkl", "wb")
 f.write(pickle.dumps(le))
 f.close()
 
-
-
-#with open("embeddings.pkl", "wb") as f:
-    #pickle.dump((images, names), f)
