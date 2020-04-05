@@ -6,6 +6,7 @@ import onnxruntime as ort
 from detector import detect
 
 
+
 print("Going through database")
 imagePaths = list(paths.list_images("dataset"))
 
