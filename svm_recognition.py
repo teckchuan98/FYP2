@@ -10,20 +10,21 @@ def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
     input_name = ort_session.get_inputs()[0].name
 
+    recognizer = pickle.loads(open("recognizer.pkl", "rb").read())
+    le = pickle.loads(open("le.pkl", "rb").read())
+
     video_capture = cv2.VideoCapture('chandler.mp4')
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
-    
     w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
     out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
-    
+
     while True:
         ret, frame = video_capture.read()
 
-        #frame = cv2.resize(frame, (320, 240))
-
+        # frame = cv2.resize(frame, (320, 240))
 
         if frame is not None:
 
@@ -35,36 +36,44 @@ def main():
                 face_locations.append(y)
             rgb_frame = frame[:, :, ::-1]
 
-            #if len(face_locations) > 0:
-                #face_locations = [face_locations[0]]
+            # if len(face_locations) > 0:
+            # face_locations = [face_locations[0]]
 
-            #face_locations = face_recognition.face_locations(rgb_frame, model="hog")
+            # face_locations = face_recognition.face_locations(rgb_frame, model="hog")
             face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
-            #face_encodings = []
-            face_names = []
 
-            #if len(face_encodings) > 0:
-                #face_encodings = [face_encodings[0]]
+            # face_encodings = []
+            face_names = []
+            probability = []
+
+            # if len(face_encodings) > 0:
+            # face_encodings = [face_encodings[0]]
 
             for face_encoding in face_encodings:
 
-                # See if the face is a match for the known face(s)
-                diff = np.subtract(saved_embeds, face_encoding)
-                dist = np.sum(np.square(diff), axis=1)
-                idx = np.argmin(dist)
-
-                if dist[idx] < 0.29:
-                    face_names.append(names[idx])
+                face_encoding = [face_encoding]
+                preds = recognizer.predict_proba(face_encoding)[0]
+                j = np.argmax(preds)
+                proba = preds[j]
+                name = le.classes_[j]
+                if proba > 0.5:
+                    face_names.append(name)
+                    probability.append(proba)
                 else:
                     face_names.append("unknown")
 
-            for (top, right, bottom, left), name in zip(face_locations, face_names):
+            for (top, right, bottom, left), name, prob in zip(face_locations, face_names, probability):
                 if name == "unknown":
                     continue
 
+                x = prob * 100
+                x = str(x)
+                x = x[:3]
+                x = x + "%"
+
                 # Draw a box around the face
                 cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-                cv2.putText(frame, name, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+                cv2.putText(frame, name + " : " + x, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
                 # match = face_recognition.compare_faces(known_faces, face_encoding, tolerance=0.50)
             cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
@@ -75,6 +84,7 @@ def main():
     video_capture.release()
     out.release()
     cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main()
