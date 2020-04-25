@@ -65,7 +65,7 @@ class Fyp:
         self.button = []
         for i in range(len(self.le.classes_)):
             if self.le.classes_[i] != "unknown":
-                self.button.append(Button(window, text=self.le.classes_[i], height=2, width=13, bg="black", fg="white",  command= lambda text = self.le.classes_[i]: self.tracker(text)))
+                self.button.append(Button(window, text=self.le.classes_[i], height=2, width=13, bg="black", fg="white",  command= lambda text = self.le.classes_[i], x=i: self.tracker(text, x)))
                 self.button[i].pack(side=RIGHT)
 
         print(self.track)
@@ -74,11 +74,13 @@ class Fyp:
         self.update()
         self.window.mainloop()
 
-    def tracker(self, name):
+    def tracker(self, name, x):
         if name not in self.track:
             self.track.append(name)
+            self.button[x].config(bg='red')
         else:
             self.track.remove(name)
+            self.button[x].config(bg='black')
 
     def test(self):
         if self.vid is None:
