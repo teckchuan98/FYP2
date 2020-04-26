@@ -4,13 +4,13 @@ import cv2
 import face_recognition
 import onnxruntime as ort
 from detector import detect
-
+import time
 
 def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
     input_name = ort_session.get_inputs()[0].name
 
-    video_capture = cv2.VideoCapture('chandler.mp4')
+    video_capture = cv2.VideoCapture("zoom.mp4")
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
@@ -20,6 +20,7 @@ def main():
     
     while True:
         ret, frame = video_capture.read()
+        start = time.time()
         if frame is not None:
 
             boxes, labels, probs = detect(frame, ort_session, input_name)
@@ -45,14 +46,16 @@ def main():
                     face_names.append("unknown")
 
             for (top, right, bottom, left), name in zip(face_locations, face_names):
-                if name == "unknown":
-                    continue
+                #if name == "unknown":
+                    #continue
 
                 # Draw a box around the face
                 cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
                 cv2.putText(frame, name, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
                 # match = face_recognition.compare_faces(known_faces, face_encoding, tolerance=0.50)
+            end = time.time()
+            print("The time used for each frame is " + str(end - start) + "milli second")
             cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
             cv2.imshow('Video', frame)
             out.write(frame)

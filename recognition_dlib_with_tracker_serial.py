@@ -8,12 +8,13 @@ import onnxruntime as ort
 from detector import detect
 from random import randint
 import numpy as np
+import time
 
 def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
     input_name = ort_session.get_inputs()[0].name
 
-    video_capture = cv2.VideoCapture('chandler.mp4')
+    video_capture = cv2.VideoCapture("zoom_one_face.mp4")
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
@@ -32,7 +33,7 @@ def main():
     print(bboxes)
     for bbox in bboxes:
         colors.append((randint(0, 255)))
-        tracker = cv2.TrackerMOSSE_create()
+        tracker = cv2.TrackerKCF_create()
         bbox = tuple(bbox)
         tracker.init(frame, bbox)
         trackers.append(tracker)
@@ -70,6 +71,7 @@ def main():
 
     while True:
         ret, frame = video_capture.read()
+        start = time.time()
         reDetect = np.mod(reDetect+1, 20)
         if frame is not None:
 
@@ -80,7 +82,7 @@ def main():
                 ##print(bboxes)
                 for bbox in bboxes:
                     colors.append((randint(0, 255)))
-                    tracker = cv2.TrackerMOSSE_create()
+                    tracker = cv2.TrackerKCF_create()
                     bbox = tuple(bbox)
                     tracker.init(frame, bbox)
                     trackers.append(tracker)
@@ -107,8 +109,8 @@ def main():
                         face_names.append("unknown")
 
                 for (top, right, bottom, left), name in zip(face_locations, face_names):
-                    if name == "unknown":
-                        continue
+                    ##if name == "unknown":
+                        ##continue
 
                     # Draw a box around the face
                     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
@@ -120,32 +122,30 @@ def main():
                     tracker = trackers[i]
                     ok, bbox = tracker.update(frame)
                     bboxes[i] = list(bbox)
-                    print("updated format of bbox" + str(bbox))
 
-                print("update by trakcer" + str(bboxes))
                 face_locations = []
                 for i in bboxes:
                     x1, y1, x2, y2 = i
-                    print("the bbox format" + str(i))
-                    print("x y" + str(x1) + " " + str(x2) + " " + str(y1) + " " + str(y2))
                     y = (y1, x2, y2, x1)
                     face_locations.append(y)
                 rgb_frame = frame[:, :, ::-1]
                 for (top, right, bottom, left), name in zip(face_locations, face_names):
-                    if name == "unknown":
-                        continue
+                    #if name == "unknown":
+                        #continue
 
                     # Draw a box around the face
                     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
                     cv2.putText(frame, name, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
                     # match = face_recognition.compare_faces(known_faces, face_encoding, tolerance=0.50)
-
+            end = time.time()
+            print("The time used for each frame is " + str(end - start) + "milli second")
             cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
             cv2.imshow('Video', frame)
             out.write(frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+
     video_capture.release()
     out.release()
     cv2.destroyAllWindows()
