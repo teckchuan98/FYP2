@@ -50,7 +50,7 @@ def rr_partition(target, n_processors):
 if __name__ == '__main__':
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
     input_name = ort_session.get_inputs()[0].name
-    video = cv2.VideoCapture('zoom_one_face.mp4')
+    video = cv2.VideoCapture(0)
 
     if not video.isOpened():
         print("Could not open video")

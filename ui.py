@@ -17,6 +17,7 @@ from detector import detect
 class Fyp:
     def __init__(self, window):
         self.window = window
+        window.geometry('1920x1080')
         self.window.title("Final Year Computer Project")
         # self.window.iconbitmap(r"favicon.ico")
         self.window.configure(bg="black")
@@ -45,6 +46,10 @@ class Fyp:
         self.btn2 = Button(window, text="Pause", height=2, width=13, bg="black", fg="white", command=self.pause_play)
         self.btn2.pack(side=LEFT)
 
+
+
+
+
         self.delay = 1
 
         self.ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
@@ -65,11 +70,25 @@ class Fyp:
         self.button = []
         for i in range(len(self.le.classes_)):
             if self.le.classes_[i] != "unknown":
-                self.button.append(Button(window, text=self.le.classes_[i], height=2, width=13, bg="black", fg="white",  command= lambda text = self.le.classes_[i], x=i: self.tracker(text, x)))
+                self.button.append(Button(window, text=self.le.classes_[i],
+                                                  height=2,
+                                                  width=13,
+                                                  bg="black", fg="white",
+                                                  command= lambda text = self.le.classes_[i], x=i: self.tracker(text, x)))
+
                 self.button[i].pack(side=RIGHT)
 
-        print(self.track)
 
+
+
+        # Creating a photoimage object to use image
+        #photo = PhotoImage(file="id.png")
+        #photoimage = photo.subsample(15,15)
+        # here, image option is used to
+        # set image on button
+        #Button(window, text='Click Me !', image=photoimage,compound = LEFT, height=70,
+                                                  #width=200,
+                                                #  bg="black",fg="white").pack(anchor='ne')
 
         self.update()
         self.window.mainloop()
@@ -138,7 +157,7 @@ class Fyp:
                         j = np.argmax(preds)
                         proba = preds[j]
                         name = self.le.classes_[j]
-                        if proba > 0.5:
+                        if proba > 0.6:
                             face_names.append(name)
                             probability.append(proba)
                         else:

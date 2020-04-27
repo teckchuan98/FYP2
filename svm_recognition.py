@@ -53,6 +53,7 @@ def main():
                 else:
                     face_names.append("unknown")
 
+
             for (top, right, bottom, left), name, prob in zip(face_locations, face_names, probability):
                 if name == "unknown":
                     continue
