@@ -10,7 +10,7 @@ def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
     input_name = ort_session.get_inputs()[0].name
 
-    video_capture = cv2.VideoCapture("zoom.mp4")
+    video_capture = cv2.VideoCapture("chandler.mp4")
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
