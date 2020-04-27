@@ -9,7 +9,7 @@ from Face_detector import detect
 import time
 
 def main():
-    video_capture = cv2.VideoCapture('zoom.mp4')
+    video_capture = cv2.VideoCapture('chandler.mp4')
     w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
     ort_session = ort.InferenceSession('ultra_light_640.onnx')
