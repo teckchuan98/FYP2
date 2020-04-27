@@ -1,5 +1,5 @@
 from tkinter.ttk import Progressbar
-
+from imutils import paths
 import cv2
 import PIL.Image
 import PIL.ImageTk
@@ -9,6 +9,16 @@ from tkinter import *
 from tkinter import filedialog
 from PIL import ImageTk, Image
 import os.path
+
+import numpy as np
+import pickle
+import cv2
+import face_recognition
+import onnxruntime as ort
+from detector import detect
+
+from sklearn.preprocessing import LabelEncoder
+from sklearn.svm import SVC
 
 # from tkinter.ttk import *
 
@@ -44,6 +54,13 @@ class Fyp:
         self.track_img = None
         self.track_btn = None
         self.counter_test = None
+
+        try:
+            self.recognizer = pickle.loads(open("recognizer.pkl", "rb").read())
+            self.le = pickle.loads(open("le.pkl", "rb").read())
+        except FileNotFoundError:
+            self.recognizer = None
+            self.le = None
 
         # login window ##################
         self.login = Toplevel()
@@ -111,7 +128,7 @@ class Fyp:
         self.canvas = tkinter.Canvas(window, height=self.canvas_height, width=self.canvas_width, bg='black')
         self.canvas.pack(pady=(10, 0), padx=(10, 10))
         self.image = PhotoImage(file='play_button.png')
-        self.canvas.create_image(300, 300, image=self.image, anchor=NW)
+        self.canvas.create_image(320, 90, image=self.image, anchor=NW)
 
         # button to end the processing frames
         self.btn1 = Button(window, text="End", height=2, width=9, command=self.kill_file)
@@ -121,7 +138,23 @@ class Fyp:
         self.btn2 = Button(window, text='Pause', height=2, width=9, command=self.pause_play)
         self.btn2.pack(pady=(10, 10))
 
-        self.delay = 15
+        self.delay = 1
+
+        self.ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
+        self.input_name = self.ort_session.get_inputs()[0].name
+
+
+        self.video_capture = cv2.VideoCapture('chandler.mp4')
+        with open("embeddings.pkl", "rb") as f:
+            (saved_embeds, names) = pickle.load(f)
+
+        w = self.video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+        h = self.video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
+
+        self.track = []
+        self.button = []
+
         self.update()
 
         self.window.withdraw()
@@ -129,7 +162,7 @@ class Fyp:
 
     # login functionality
     def login_action(self):
-        if self.login_entry.get() == 'admin' and self.login_entry1.get() == 'abc123':
+        if self.login_entry.get() == '' and self.login_entry1.get() == '':
             self.window.deiconify()
             self.login.destroy()
         else:
@@ -199,45 +232,85 @@ class Fyp:
         self.label.pack(pady=(0, 10))
 
     # window for tracking##############
+    def tracker(self, name, x):
+        if name not in self.track:
+            self.track.append(name)
+            self.button[x].config(bg='red')
+        else:
+            self.track.remove(name)
+            self.button[x].config(bg='black')
+
     def open_track(self):
         self.track_window = Toplevel()
         self.track_window.title('Tracking...')
         self.track_window.iconbitmap(r"favicon.ico")
 
-        for i in range(4):
+        for i in range(len(self.le.classes_)):
+            if self.le.classes_[i] != "unknown":
+                self.button.append(Button(self.track_window, text=self.le.classes_[i],
+                                                  height=2,
+                                                  width=13,
+                                                  bg="black", fg="white",
+                                                  command= lambda text = self.le.classes_[i], x=i: self.tracker(text, x)))
 
-            # self.track_img = PhotoImage(file=r'identity.png')
-            # self.track_img = self.track_img.subsample(3, 3)
-
-            self.track_btn = Button(self.track_window, text='Bla bla', command=self.do_smth)
-            self.track_btn.pack()
-
+                self.button[i].pack()
         self.label_topic = Label(self.track_window, text='')
         self.label_topic.pack()
 
     def do_smth(self):
         self.label_topic.config(text='Yes')
-    # ###########################################
+
 
     def progress_bar(self):
         self.progress['value'] = 5
-        self.counter_test = 0
-        while self.progress['value'] < 100:
-            self.counter_test += 1
-            self.label_progress.config(text=self.counter_test)
+        imagePaths = list(paths.list_images("dataset"))
+        names = []
+        images = []
+
+        for (i, imagePath) in enumerate(imagePaths):
+            message = "processing image " + str(i + 1) + "/" + str(len(imagePaths))
+            self.label_progress.config(text=message)
             self.label.config(text=' Training in Progress ' + '\n' + 'Do not exit')
             self.progress['value'] += 5
             self.app_window.update_idletasks()
-            time.sleep(1.0)
+            name = imagePath.split(os.path.sep)[-2]
+            image = face_recognition.load_image_file(imagePath)
+            face_encoding = face_recognition.face_encodings(image)
+
+            if len(face_encoding) > 0:
+                images.append(face_encoding[0])
+                names.append(name)
+
+        data = {"embeddings": images, "names": names}
+
+        le = LabelEncoder()
+        labels = le.fit_transform(data["names"])
+
+        recognizer = SVC(C=1000, kernel="linear", probability=True)
+        recognizer.fit(data["embeddings"], labels)
+
+        # write the actual face recognition model to disk
+        f = open("recognizer.pkl", "wb")
+        f.write(pickle.dumps(recognizer))
+        f.close()
+        # write the label encoder to disk
+        f = open("le.pkl", "wb")
+        f.write(pickle.dumps(le))
+        f.close()
+
+        self.recognizer = pickle.loads(open("recognizer.pkl", "rb").read())
+        self.le = pickle.loads(open("le.pkl", "rb").read())
+
         self.label.config(text=' Training Completed ')
 
     def open_file(self):
-        if os.path.isfile('fyp.txt'):
+        if os.path.isfile('recognizer.pkl') and os.path.isfile('le.pkl'):
             self.window_label.config(text='Select File in Mp4 Format')
             self.result = filedialog.askopenfile(initialdir="/Users/User/Desktop/Testing", title="Select File",
                                                  filetypes=(("mp4 files", "*.mp4"), ("all files", "*.*")))
+            self.open_track()
         else:
-            self.window_label.config(text='Certain Files are missing')
+            self.window_label.config(text='You need to train recognition model first')
             raise AssertionError('File does not exist')
 
         if not self.result.name.endswith('.mp4'):
@@ -250,7 +323,10 @@ class Fyp:
 
     def kill_file(self):
         self.canvas.delete('all')
-        self.canvas.create_image(320, 180, image=self.image, anchor=CENTER)
+        self.track_window.destroy()
+        self.button = []
+
+        self.canvas.create_image(320, 90, image=self.image, anchor=NW)
         if self.vid is not None:
             self.vid.end_video()
         self.vid = None
@@ -270,6 +346,48 @@ class Fyp:
             if self.vid is not None:
                 ret, frame = self.vid.get_frame()
                 if frame is not None:
+                    # processing
+                    boxes, labels, probs = detect(frame, self.ort_session, self.input_name)
+                    face_locations = []
+                    for i in boxes:
+                        x1, y1, x2, y2 = i
+                        y = (y1, x2, y2, x1)
+                        face_locations.append(y)
+                    rgb_frame = frame[:, :, ::-1]
+
+                    face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+                    face_names = []
+                    probability = []
+
+                    for face_encoding in face_encodings:
+
+                        face_encoding = [face_encoding]
+                        preds = self.recognizer.predict_proba(face_encoding)[0]
+                        j = np.argmax(preds)
+                        proba = preds[j]
+                        name = self.le.classes_[j]
+                        if proba > 0.6:
+                            face_names.append(name)
+                            probability.append(proba)
+                        else:
+                            face_names.append("unknown")
+                    for (top, right, bottom, left), name, prob in zip(face_locations, face_names, probability):
+                        if name == "unknown":
+                            continue
+
+                        x = prob * 100
+                        x = str(x)
+                        x = x[:3]
+                        x = x + "%"
+
+                        # Draw a box around the face
+                        if name in self.track:
+                            cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
+                            cv2.putText(frame, name + " : " + x, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
+                                        (255, 0, 0), 2)
+
+                    frame = cv2.resize(frame, (1080, 550))
+
                     self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
                     self.canvas.create_image(0, 0, image=self.photo, anchor=tkinter.NW)
                 else:
