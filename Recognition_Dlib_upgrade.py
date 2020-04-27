@@ -30,7 +30,7 @@ def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
     input_name = ort_session.get_inputs()[0].name
 
-    video_capture = cv2.VideoCapture("zoom.mp4")
+    video_capture = cv2.VideoCapture("chandler.mp4")
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
@@ -80,8 +80,8 @@ def main():
 
             print(face_locations, face_names)
             for (top, right, bottom, left), name in zip(face_locations, face_names):
-                #if name == "unknown":
-                    #continue
+                if name == "unknown":
+                    continue
 
                 # Draw a box around the face
                 cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
