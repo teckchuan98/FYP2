@@ -10,14 +10,15 @@ def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
     input_name = ort_session.get_inputs()[0].name
 
-    video_capture = cv2.VideoCapture("zoom.mp4")
+    video_capture = cv2.VideoCapture("chandler.mp4")
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
     w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
     out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
-    
+    fps = 0.0
+
     while True:
         ret, frame = video_capture.read()
         start = time.time()
@@ -54,8 +55,10 @@ def main():
                 cv2.putText(frame, name, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
                 # match = face_recognition.compare_faces(known_faces, face_encoding, tolerance=0.50)
-            end = time.time()
-            print("The time used for each frame is " + str(end - start) + "milli second")
+            fps = (fps + (1. / (time.time() - start))) / 2
+            cv2.putText(frame, "FPS: {:.2f}".format(fps), (0, 30),
+                        cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
+
             cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
             cv2.imshow('Video', frame)
             out.write(frame)

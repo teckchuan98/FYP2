@@ -31,7 +31,7 @@ def rr_partition(trackers, n_processor):
 def tracker_update(bboxes, frame, pre_frame):
     results = []
     for bbox in bboxes:
-        tracker = cv2.TrackerKCF_create()
+        tracker = cv2.TrackerMOSSE_create()
         ok = tracker.init(pre_frame, bbox)
         ok, new_bbox = tracker.update(frame)
         results.append(new_bbox)
@@ -50,7 +50,7 @@ def rr_partition(target, n_processors):
 if __name__ == '__main__':
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
     input_name = ort_session.get_inputs()[0].name
-    video = cv2.VideoCapture('zoom_one_face.mp4')
+    video = cv2.VideoCapture('zoom.mp4')
 
     if not video.isOpened():
         print("Could not open video")
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     pre_frame = frame
     n_processor = 8
     pool = mp.Pool(processes=n_processor)
-
+    fps = 0.0
     startTracking = False
 
     while True:
@@ -100,8 +100,9 @@ if __name__ == '__main__':
                     cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)
 
         pre_frame = frame
-        end = time.time()
-        print("The time used for each frame is " + str(end-start) + "milli second")
+        fps = (fps + (1. / (time.time() - start))) / 2
+        cv2.putText(frame, "FPS: {:.2f}".format(fps), (0, 30),
+                    cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
         cv2.imshow("Tracking", frame)
         k = cv2.waitKey(1) & 0xff
         93

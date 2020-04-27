@@ -35,9 +35,9 @@ class Fyp:
         self.canvas = tkinter.Canvas(window, height=550, width=1080)
         self.canvas.pack(pady=(10, 0), padx=(10, 500))
 
-        self.image = PhotoImage(file='play1.png')
+        ##self.image = PhotoImage(file='play1.png')
 
-        self.canvas.create_image(0, 0, image=self.image, anchor="nw")
+        ##self.canvas.create_image(0, 0, image=self.image, anchor="nw")
 
         self.btn1 = Button(window, text="End", height=2, width=13, bg="black", fg="white", command=self.kill_file)
         self.btn1.pack(side=LEFT)

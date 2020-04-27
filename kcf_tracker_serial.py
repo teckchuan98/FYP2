@@ -33,7 +33,7 @@ def tracker_update(tracker, frame):
 if __name__ == '__main__' :
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
     input_name = ort_session.get_inputs()[0].name
-    video = cv2.VideoCapture('zoom_one_face.mp4')
+    video = cv2.VideoCapture('zoom.mp4')
 
     if not video.isOpened():
         print("Could not open video")
@@ -51,11 +51,12 @@ if __name__ == '__main__' :
     print(bboxes)
     for bbox in bboxes:
         colors.append((randint(0, 255)))
-        tracker = cv2.TrackerKCF_create()
+        tracker = cv2.TrackerMOSSE_create()
         ok = tracker.init(frame, bbox)
         trackers.append(tracker)
 
     reDetect = 0
+    fps = 0.0
 
     while True:
         ok, frame = video.read()
@@ -63,7 +64,7 @@ if __name__ == '__main__' :
         if not ok:
             break
 
-        if len(trackers) < 1:
+        if len(trackers) < 4:
             trackers = []
             bboxes, labels, probs = detect(frame, ort_session, input_name)
             bboxes = list(map(tuple, bboxes))
@@ -81,8 +82,9 @@ if __name__ == '__main__' :
                 p2 = (int(bbox[2]), int(bbox[3]))
                 cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)
 
-        end = time.time()
-        print("The time used for each frame is " + str(end - start) + "milli second")
+        fps = (fps + (1. / (time.time() - start))) / 2
+        cv2.putText(frame, "FPS: {:.2f}".format(fps), (0, 30),
+                    cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
         cv2.imshow("Tracking", frame)
         k = cv2.waitKey(1) & 0xff
         93
