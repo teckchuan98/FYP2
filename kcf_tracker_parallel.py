@@ -67,7 +67,7 @@ if __name__ == '__main__':
     pre_frame = frame
     n_processor = 8
     pool = mp.Pool(processes=n_processor)
-
+    fps = 0.0
     startTracking = False
 
     while True:
@@ -85,7 +85,10 @@ if __name__ == '__main__':
 
         else:
             results = []
+            print("before")
+            print(bboxes)
             bboxes = rr_partition(bboxes, n_processor)
+            print(bboxes)
             for subset in bboxes:
 
                 out = pool.apply_async(tracker_update, [subset, frame, pre_frame])
@@ -100,8 +103,9 @@ if __name__ == '__main__':
                     cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)
 
         pre_frame = frame
-        end = time.time()
-        print("The time used for each frame is " + str(end-start) + "milli second")
+        fps = (fps + (1. / (time.time() - start))) / 2
+        cv2.putText(frame, "FPS: {:.2f}".format(fps), (0, 30),
+                    cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
         cv2.imshow("Tracking", frame)
         k = cv2.waitKey(1) & 0xff
         93
