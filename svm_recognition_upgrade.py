@@ -34,8 +34,8 @@ def main():
     le = pickle.loads(open("le.pkl", "rb").read())
 
     video_capture = cv2.VideoCapture('chandler.mp4')
-    with open("embeddings.pkl", "rb") as f:
-        (saved_embeds, names) = pickle.load(f)
+    #with open("embeddings.pkl", "rb") as f:
+        #(saved_embeds, names) = pickle.load(f)
 
     w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)

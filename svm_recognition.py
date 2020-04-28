@@ -4,6 +4,7 @@ import cv2
 import face_recognition
 import onnxruntime as ort
 from detector import detect
+import time
 
 
 def main():
@@ -20,10 +21,11 @@ def main():
     w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
     out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
+    fps = 0.0
 
     while True:
         ret, frame = video_capture.read()
-
+        start = time.time()
         # frame = cv2.resize(frame, (320, 240))
 
         if frame is not None:
@@ -68,6 +70,9 @@ def main():
                 cv2.putText(frame, name + " : " + x, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 
                 # match = face_recognition.compare_faces(known_faces, face_encoding, tolerance=0.50)
+            fps = (fps + (1. / (time.time() - start))) / 2
+            cv2.putText(frame, "FPS: {:.2f}".format(fps), (0, 30),
+                        cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
             cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
             cv2.imshow('Video', frame)
             out.write(frame)
