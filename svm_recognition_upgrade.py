@@ -79,7 +79,7 @@ def main():
                     proba = preds[j]
                     name = le.classes_[j]
                     probability.append(proba)
-                    if proba > 0.5:
+                    if proba > 0.7:
                         face_names.append(name)
                     else:
                         face_names.append("unknown")
