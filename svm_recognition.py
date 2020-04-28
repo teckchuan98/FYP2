@@ -49,13 +49,13 @@ def main():
                 j = np.argmax(preds)
                 proba = preds[j]
                 name = le.classes_[j]
+                probability.append(proba)
                 if proba > 0.5:
                     face_names.append(name)
-                    probability.append(proba)
                 else:
                     face_names.append("unknown")
 
-
+            print(face_locations, face_names, probability)
             for (top, right, bottom, left), name, prob in zip(face_locations, face_names, probability):
                 if name == "unknown":
                     continue

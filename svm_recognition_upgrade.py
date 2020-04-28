@@ -6,11 +6,13 @@ import onnxruntime as ort
 from detector import detect
 import time
 
-def track(pre_faces, cur_faces):
+def track(pre_faces, cur_faces, names):
     print("in function")
     print(pre_faces, cur_faces)
     results = []
-    for face in pre_faces:
+    results_names = []
+    for n in range(len(pre_faces)):
+        face = pre_faces[n]
         min_dif = None
         min_id = -1
         for i in range(len(cur_faces)):
@@ -21,10 +23,11 @@ def track(pre_faces, cur_faces):
                 min_id = i
         if(min_id != -1):
             results.append(cur_faces[min_id])
+            results_names.append(names[n])
         else:
             break
 
-    return results
+    return results, results_names
 
 def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
@@ -75,15 +78,16 @@ def main():
                     j = np.argmax(preds)
                     proba = preds[j]
                     name = le.classes_[j]
+                    probability.append(proba)
                     if proba > 0.5:
                         face_names.append(name)
-                        probability.append(proba)
                     else:
                         face_names.append("unknown")
 
             else:
-                face_locations = track(face_locations, temp)
+                face_locations, face_names = track(face_locations, temp, face_names)
 
+            print(face_locations, face_names, probability)
             for (top, right, bottom, left), name, prob in zip(face_locations, face_names, probability):
                 if name == "unknown":
                     continue
