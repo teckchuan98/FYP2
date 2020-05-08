@@ -18,9 +18,10 @@ def track(pre_faces, cur_faces, names):
         for i in range(len(cur_faces)):
             face1 = cur_faces[i]
             dif = abs(face1[0] - face[0]) + abs(face1[1] - face[1]) + abs(face1[2] - face[2]) + abs(face1[3] - face[3])
-            if(min_dif == None or min_dif > dif):
-                min_dif = dif
-                min_id = i
+            if dif <= 30:
+                if (min_dif == None or min_dif > dif):
+                    min_dif = dif
+                    min_id = i
         if(min_id != -1):
             results.append(cur_faces[min_id])
             results_names.append(names[n])

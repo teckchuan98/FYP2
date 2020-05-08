@@ -6,11 +6,16 @@ import onnxruntime as ort
 from detector import detect
 import time
 
-def track(pre_faces, cur_faces, names):
+def update(frame, pre_frame, face_location):
+
+    return None
+
+def track(pre_faces, cur_faces, names, frame, pre_frame):
     print("in function")
     print(pre_faces, cur_faces)
     results = []
     results_names = []
+
     for n in range(len(pre_faces)):
         face = pre_faces[n]
         min_dif = None
@@ -18,14 +23,18 @@ def track(pre_faces, cur_faces, names):
         for i in range(len(cur_faces)):
             face1 = cur_faces[i]
             dif = abs(face1[0] - face[0]) + abs(face1[1] - face[1]) + abs(face1[2] - face[2]) + abs(face1[3] - face[3])
-            if(min_dif == None or min_dif > dif):
-                min_dif = dif
-                min_id = i
+            if dif <= 30:
+                if (min_dif == None or min_dif > dif):
+                    min_dif = dif
+                    min_id = i
         if(min_id != -1):
             results.append(cur_faces[min_id])
             results_names.append(names[n])
         else:
-            break
+            updated_loc = update(frame, pre_frame, pre_faces[n])
+            if updated_loc is not None:
+                results.append(cur_faces[min_id])
+                results_names.append(names[n])
 
     return results, results_names
 
@@ -48,10 +57,13 @@ def main():
     face_locations = []
     face_names = []
     probability = []
+    pre_frame = None
 
     while True:
         redetect = (redetect+1)%20
         ret, frame = video_capture.read()
+        if pre_frame is None:
+            pre_frame = frame
         start = time.time()
         # frame = cv2.resize(frame, (320, 240))
 
@@ -85,7 +97,7 @@ def main():
                         face_names.append("unknown")
 
             else:
-                face_locations, face_names = track(face_locations, temp, face_names)
+                face_locations, face_names = track(face_locations, temp, face_names, frame, pre_frame)
 
             print(face_locations, face_names, probability)
             for (top, right, bottom, left), name, prob in zip(face_locations, face_names, probability):
@@ -108,8 +120,11 @@ def main():
             cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
             cv2.imshow('Video', frame)
             out.write(frame)
+            pre_frame = frame
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+
+
     video_capture.release()
     out.release()
     cv2.destroyAllWindows()
