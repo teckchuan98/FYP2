@@ -14,6 +14,35 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob):
     locations = []
     probability = []
 
+    for i in range(len(cur_names)):
+        name = cur_names[i]
+        prob = cur_prob[i]
+        max_id = i
+        if name != "unknown":
+            if not name in names:
+                names.append(name)
+                for j in range(len(cur_names)):
+                    name2 = cur_names[j]
+                    prob2 = cur_prob[j]
+                    if name2 == name and prob2 > prob and name2 != "unknown":
+                        max_id = j
+                        prob = prob2
+
+                probability.append(prob)
+                locations.append(cur_locs[max_id])
+        else:
+            names.append(name)
+            probability.append(prob)
+            locations.append(cur_locs[max_id])
+
+    cur_names = names
+    cur_locs = locations
+    cur_prob = probability
+
+    names = []
+    locations = []
+    probability = []
+
     for i in range(len(pre_names)):
         name = pre_names[i]
         if name not in cur_names and name != "unknown":
@@ -22,7 +51,7 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob):
             probability.append(pre_prob[i])
 
     if len(names) == 0:
-        return cur_names, cur_prob
+        return cur_names, cur_prob, cur_locs
 
     unknowns = []
     for i in range(len(cur_names)):
@@ -55,7 +84,7 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob):
             cur_names[cur_id] = names[unknowns[i][2]]
             cur_prob[cur_id] = probability[unknowns[i][2]]
 
-    return cur_names, cur_prob
+    return cur_names, cur_prob, cur_locs
 
 def track(pre_faces, cur_faces, names, probability):
     results = []
@@ -106,7 +135,7 @@ def main():
     recognizer = pickle.loads(open("recognizer.pkl", "rb").read())
     le = pickle.loads(open("le.pkl", "rb").read())
 
-    video_capture = cv2.VideoCapture('chandler.mp4')
+    video_capture = cv2.VideoCapture('zoom.mp4')
     #with open("embeddings.pkl", "rb") as f:
         #(saved_embeds, names) = pickle.load(f)
 
@@ -150,12 +179,12 @@ def main():
                     name = le.classes_[j]
                     cur_prob.append(proba)
                     ##print(proba, name)
-                    if proba > 0.7:
+                    if proba > 0.8:
                         names.append(name)
                     else:
                         names.append("unknown")
 
-                names, cur_prob = update(names, face_names, temp, face_locations, cur_prob, probability)
+                names, cur_prob, temp = update(names, face_names, temp, face_locations, cur_prob, probability)
 
                 face_locations = temp
                 face_names = names
