@@ -30,20 +30,12 @@ def main():
 
         if frame is not None:
 
-            boxes, labels, probs = detect(frame, ort_session, input_name)
-            face_locations = []
-            for i in boxes:
-                x1, y1, x2, y2 = i
-                y = (y1, x2, y2, x1)
-                face_locations.append(y)
-            rgb_frame = frame[:, :, ::-1]
-
+            rgb_frame, face_locations = detect(frame, ort_session, input_name)
             face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+
             face_names = []
             probability = []
-
             for face_encoding in face_encodings:
-
                 face_encoding = [face_encoding]
                 preds = recognizer.predict_proba(face_encoding)[0]
                 j = np.argmax(preds)
