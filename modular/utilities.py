@@ -84,6 +84,7 @@ def recognise(temp, rgb_frame, recognizer, le, names, saved_embeds):
             probability.append(proba)
         else:
             face_names.append("unknown")
+            probability.append(proba)
 
     return face_locations, face_names, probability
 
