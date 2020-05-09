@@ -6,10 +6,7 @@ import onnxruntime as ort
 import pickle
 
 
-def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob):
-
-    print("in update")
-
+def remove_duplicate(cur_names, cur_locs, cur_prob):
     names = []
     locations = []
     probability = []
@@ -39,25 +36,39 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob):
     cur_locs = locations
     cur_prob = probability
 
+    return cur_names, cur_prob, cur_locs
+
+
+def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_track):
+    threshold = 2
     names = []
     locations = []
     probability = []
 
+    unknowns = []
+    for i in range(len(cur_names)):
+        name = cur_names[i]
+        if name == "unknown":
+            unknowns.append((i, -1, -1))
+        else:
+            false_track[name] = 0
+
     for i in range(len(pre_names)):
         name = pre_names[i]
         if name not in cur_names and name != "unknown":
-            names.append(name)
-            locations.append(pre_locs[i])
-            probability.append(pre_prob[i])
+            if name not in false_track:
+                false_track[name] = 0
+            else:
+                if false_track[name] >= threshold:
+                    false_track[name] = 0
+                else:
+                    false_track[name] += 1
+                    names.append(name)
+                    locations.append(pre_locs[i])
+                    probability.append(pre_prob[i])
 
     if len(names) == 0:
-        return cur_names, cur_prob, cur_locs
-
-    unknowns = []
-    for i in range(len(cur_names)):
-        if cur_names[i] == "unknown":
-            unknowns.append((i, -1, -1))
-
+        return cur_names, cur_prob, cur_locs, false_track
 
     for n in range(len(names)):
         face = locations[n]
@@ -70,13 +81,13 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob):
             ##print("check")
             ##print(dif)
             if dif <= 300:
-                if (min_dif == None or min_dif > dif):
+                if min_dif == None or min_dif > dif:
                     min_dif = dif
                     min_id = i
-        if(min_id != -1):
+        if min_id != -1:
             if unknowns[min_id][1] == -1 or min_dif < unknowns[min_id][1]:
-                cur_id =  unknowns[min_id][0]
-                unknowns[min_id]= (cur_id, min_dif, n)
+                cur_id = unknowns[min_id][0]
+                unknowns[min_id] = (cur_id, min_dif, n)
 
     for i in range(len(unknowns)):
         if unknowns[i][1] != -1:
@@ -84,7 +95,7 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob):
             cur_names[cur_id] = names[unknowns[i][2]]
             cur_prob[cur_id] = probability[unknowns[i][2]]
 
-    return cur_names, cur_prob, cur_locs
+    return cur_names, cur_prob, cur_locs, false_track
 
 
 def initialise():
@@ -103,7 +114,6 @@ def initialise():
     out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
 
     return ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out
-
 
 
 def detect(frame, ort_session, input_name):
@@ -189,9 +199,9 @@ def track(pre_faces, cur_faces, names, probability):
                 if (min_dif == None or min_dif > dif):
                     min_dif = dif
                     min_id = i
-        if(min_id != -1):
+        if (min_id != -1):
             if results[min_id][0] == -1 or min_dif < results[min_id][0]:
-                results[min_id]= (min_dif, cur_faces[n])
+                results[min_id] = (min_dif, cur_faces[n])
 
     temp = results
     temp_names = results_names
@@ -222,12 +232,3 @@ def tag(frame, face_locations, face_names, probability):
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
         cv2.putText(frame, name + " : " + x, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
     return frame
-
-
-
-
-
-
-
-
-

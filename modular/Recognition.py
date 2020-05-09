@@ -1,6 +1,6 @@
 import cv2
 import time
-from modular.utilities import detect, recognise, track, tag, initialise, update
+from modular.utilities import detect, recognise, track, tag, initialise, update, remove_duplicate
 
 
 def main():
@@ -12,6 +12,7 @@ def main():
     probability = []
 
     pre_frame = None
+    false_track = {}
 
     while True:
         redetect = (redetect + 1) % 15
@@ -28,7 +29,8 @@ def main():
                 cur_names = []
                 cur_prob = []
                 temp, cur_names, cur_prob = recognise(temp, rgb_frame, recognizer, le, names, saved_embeds)
-                cur_names, cur_prob, temp = update(cur_names, face_names, temp, face_locations, cur_prob, probability)
+                cur_names, cur_prob, temp = remove_duplicate(cur_names, temp, cur_prob)
+                cur_names, cur_prob, temp, false_track = update(cur_names, face_names, temp, face_locations, cur_prob, probability, false_track)
                 face_locations = temp
                 face_names = cur_names
                 probability = cur_prob
