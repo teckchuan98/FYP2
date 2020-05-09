@@ -26,6 +26,7 @@ def main():
     while True:
         ret, frame = video_capture.read()
         start = time.time()
+        frame = cv2.resize(frame, (640, 480))  #
         # frame = cv2.resize(frame, (320, 240))
 
         if frame is not None:
