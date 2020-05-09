@@ -4,7 +4,47 @@ from modular.Compute_detections import predict
 import face_recognition
 import onnxruntime as ort
 import pickle
+import dlib
 
+def remove_unknown(cur_names, cur_loc, cur_prob):
+
+    names = []
+    locations = []
+    probability = []
+
+    for i in range(len(cur_names)):
+        if cur_names[i] != "unknown":
+            names.append(cur_names[i])
+            locations.append(cur_loc[i])
+            probability.append(cur_prob[i])
+
+    return names, locations, probability
+
+def track_by_tracker(box, pre_frame, cur_frame):
+    # construct a dlib rectangle object from the bounding box
+    # coordinates and then start the correlation tracker
+    print("initalize tracker", box)
+    t = dlib.correlation_tracker()
+    y1, x2, y2, x1 = box
+    box = (x1, y1, x2, y2)
+    print(box[0], box[1], box[2], box[3])
+    rect = dlib.rectangle(box[0], box[1], box[2], box[3])
+
+    rgb = cv2.cvtColor(pre_frame, cv2.COLOR_BGR2RGB)
+    rgb2 = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
+    t.start_track(rgb, rect)
+
+    t.update(rgb2)
+    pos = t.get_position()
+
+    startX = int(pos.left())
+    startY = int(pos.top())
+    endX = int(pos.right())
+    endY = int(pos.bottom())
+
+    del t
+
+    return startY, endX, endY, startX
 
 def remove_duplicate(cur_names, cur_locs, cur_prob):
     names = []
