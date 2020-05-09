@@ -1,3 +1,5 @@
+import threading
+
 import numpy as np
 import pickle
 import cv2
@@ -12,9 +14,10 @@ import imutils
 import dlib
 
 
-def start_tracker(box, label, rgb, inputQueue, outputQueue):
+def start_tracker(box, label, rgb, inputQueue, outputQueue, stop_event):
     # construct a dlib rectangle object from the bounding box
     # coordinates and then start the correlation tracker
+    print("initalize tracker", box)
     t = dlib.correlation_tracker()
     print(box[0], box[1], box[2], box[3])
     rect = dlib.rectangle(box[0], box[1], box[2], box[3])
@@ -22,7 +25,7 @@ def start_tracker(box, label, rgb, inputQueue, outputQueue):
 
     # loop indefinitely -- this function will be called as a daemon
     # process so we don't need to worry about joining it
-    while True:
+    while True and not stop_event.set():
         # attempt to grab the next frame from the input queue
         rgb = inputQueue.get()
 
@@ -31,7 +34,6 @@ def start_tracker(box, label, rgb, inputQueue, outputQueue):
             # update the tracker and grab the position of the tracked
             # object
             t.update(rgb)
-            print("updated")
             pos = t.get_position()
 
             # unpack the position object
@@ -43,31 +45,6 @@ def start_tracker(box, label, rgb, inputQueue, outputQueue):
             # add the label + bounding box coordinates to the output
             # queue
             outputQueue.put((label, (startX, startY, endX, endY)))
-
-
-def track(pre_faces, cur_faces, names):
-    print("in function")
-    print(pre_faces, cur_faces)
-    results = []
-    results_names = []
-    for n in range(len(pre_faces)):
-        face = pre_faces[n]
-        min_dif = None
-        min_id = -1
-        for i in range(len(cur_faces)):
-            face1 = cur_faces[i]
-            dif = abs(face1[0] - face[0]) + abs(face1[1] - face[1]) + abs(face1[2] - face[2]) + abs(face1[3] - face[3])
-            if min_dif is None or min_dif > dif:
-                min_dif = dif
-                min_id = i
-        if min_id != -1:
-            results.append(cur_faces[min_id])
-            results_names.append(names[n])
-        else:
-            break
-
-    return results, results_names
-
 
 def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
@@ -89,14 +66,22 @@ def main():
     # initialize our list of queues -- both input queue and output queue
     # for *every* object that we will be tracking
 
+    p = None
+    stop_event = threading.Event()
+
     while True:
-        redetect = (redetect + 1) % 200
+        redetect = (redetect + 1) % 20
         ret, frame = video_capture.read()
         start = time.time()
         if frame is not None:
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             if redetect == 0:
+                if p is not None:
+                    p.daemon = False
+                    p.close()
+
+                stop_event.set()
                 inputQueues = []
                 outputQueues = []
                 boxes, labels, probs = detect(frame, ort_session, input_name)
@@ -135,7 +120,7 @@ def main():
                     print(y)
                     p = multiprocessing.Process(
                         target=start_tracker,
-                        args=(y, face_names[i], rgb, iq, oq))
+                        args=(y, face_names[i], rgb, iq, oq, stop_event))
                     p.daemon = True
                     p.start()
 

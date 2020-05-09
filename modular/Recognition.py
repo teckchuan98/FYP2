@@ -1,6 +1,7 @@
 import cv2
 import time
-from modular.utilities import detect, recognise, track, tag, initialise
+from modular.utilities import detect, recognise, track, tag, initialise, update
+
 
 def main():
     ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out = initialise()
@@ -9,6 +10,7 @@ def main():
     face_locations = []
     face_names = []
     probability = []
+
     pre_frame = None
 
     while True:
@@ -23,9 +25,16 @@ def main():
             rgb_frame, temp = detect(frame, ort_session, input_name)
 
             if redetect == 0:
-                face_locations, face_names, probability = recognise(temp, rgb_frame, recognizer, le, names, saved_embeds)
+                cur_names = []
+                cur_prob = []
+                temp, cur_names, cur_prob = recognise(temp, rgb_frame, recognizer, le, names, saved_embeds)
+                cur_names, cur_prob, temp = update(cur_names, face_names, temp, face_locations, cur_prob, probability)
+                face_locations = temp
+                face_names = cur_names
+                probability = cur_prob
+
             else:
-                face_locations, face_names = track(face_locations, temp, face_names, frame, pre_frame)
+                face_locations, face_names, probability = track(face_locations, temp, face_names, probability)
 
             frame = tag(frame, face_locations, face_names, probability)
 

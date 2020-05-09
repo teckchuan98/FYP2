@@ -5,8 +5,86 @@ import face_recognition
 import onnxruntime as ort
 import pickle
 
-def update(frame, pre_frame, face_location):
-    return None
+
+def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob):
+
+    print("in update")
+
+    names = []
+    locations = []
+    probability = []
+
+    for i in range(len(cur_names)):
+        name = cur_names[i]
+        prob = cur_prob[i]
+        max_id = i
+        if name != "unknown":
+            if not name in names:
+                names.append(name)
+                for j in range(len(cur_names)):
+                    name2 = cur_names[j]
+                    prob2 = cur_prob[j]
+                    if name2 == name and prob2 > prob and name2 != "unknown":
+                        max_id = j
+                        prob = prob2
+
+                probability.append(prob)
+                locations.append(cur_locs[max_id])
+        else:
+            names.append(name)
+            probability.append(prob)
+            locations.append(cur_locs[max_id])
+
+    cur_names = names
+    cur_locs = locations
+    cur_prob = probability
+
+    names = []
+    locations = []
+    probability = []
+
+    for i in range(len(pre_names)):
+        name = pre_names[i]
+        if name not in cur_names and name != "unknown":
+            names.append(name)
+            locations.append(pre_locs[i])
+            probability.append(pre_prob[i])
+
+    if len(names) == 0:
+        return cur_names, cur_prob, cur_locs
+
+    unknowns = []
+    for i in range(len(cur_names)):
+        if cur_names[i] == "unknown":
+            unknowns.append((i, -1, -1))
+
+
+    for n in range(len(names)):
+        face = locations[n]
+        min_dif = None
+        min_id = -1
+        for i in range(len(unknowns)):
+            cur_id = unknowns[i][0]
+            face1 = cur_locs[cur_id]
+            dif = abs(face1[0] - face[0]) + abs(face1[1] - face[1]) + abs(face1[2] - face[2]) + abs(face1[3] - face[3])
+            ##print("check")
+            ##print(dif)
+            if dif <= 300:
+                if (min_dif == None or min_dif > dif):
+                    min_dif = dif
+                    min_id = i
+        if(min_id != -1):
+            if unknowns[min_id][1] == -1 or min_dif < unknowns[min_id][1]:
+                cur_id =  unknowns[min_id][0]
+                unknowns[min_id]= (cur_id, min_dif, n)
+
+    for i in range(len(unknowns)):
+        if unknowns[i][1] != -1:
+            cur_id = unknowns[i][0]
+            cur_names[cur_id] = names[unknowns[i][2]]
+            cur_prob[cur_id] = probability[unknowns[i][2]]
+
+    return cur_names, cur_prob, cur_locs
 
 
 def initialise():
@@ -89,33 +167,47 @@ def recognise(temp, rgb_frame, recognizer, le, names, saved_embeds):
     return face_locations, face_names, probability
 
 
-def track(pre_faces, cur_faces, names, frame, pre_frame):
-    print("in function")
-    print(pre_faces, cur_faces)
+def track(pre_faces, cur_faces, names, probability):
     results = []
     results_names = []
+    results_prob = []
+    for i in range(len(pre_faces)):
+        results.append((-1, (-1, -1, -1, -1)))
+        results_names.append(names[i])
+        results_prob.append(probability[i])
 
-    for n in range(len(pre_faces)):
-        face = pre_faces[n]
+    for n in range(len(cur_faces)):
+        face = cur_faces[n]
         min_dif = None
         min_id = -1
-        for i in range(len(cur_faces)):
-            face1 = cur_faces[i]
+        for i in range(len(pre_faces)):
+            face1 = pre_faces[i]
             dif = abs(face1[0] - face[0]) + abs(face1[1] - face[1]) + abs(face1[2] - face[2]) + abs(face1[3] - face[3])
-            if dif <= 30:
+            ##print("check")
+            ##print(dif)
+            if dif <= 300:
                 if (min_dif == None or min_dif > dif):
                     min_dif = dif
                     min_id = i
         if(min_id != -1):
-            results.append(cur_faces[min_id])
-            results_names.append(names[n])
-        else:
-            updated_loc = update(frame, pre_frame, pre_faces[n])
-            if updated_loc is not None:
-                results.append(cur_faces[min_id])
-                results_names.append(names[n])
+            if results[min_id][0] == -1 or min_dif < results[min_id][0]:
+                results[min_id]= (min_dif, cur_faces[n])
 
-    return results, results_names
+    temp = results
+    temp_names = results_names
+    temp_prob = results_prob
+    results_names = []
+    results = []
+    results_prob = []
+
+    for i in range(len(temp)):
+        result = temp[i]
+        if result[0] != -1:
+            results.append(result[1])
+            results_names.append(temp_names[i])
+            results_prob.append((temp_prob[i]))
+
+    return results, results_names, results_prob
 
 
 def tag(frame, face_locations, face_names, probability):

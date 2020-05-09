@@ -135,7 +135,7 @@ def main():
     recognizer = pickle.loads(open("recognizer.pkl", "rb").read())
     le = pickle.loads(open("le.pkl", "rb").read())
 
-    video_capture = cv2.VideoCapture('zoom.mp4')
+    video_capture = cv2.VideoCapture('chandler.mp4')
     #with open("embeddings.pkl", "rb") as f:
         #(saved_embeds, names) = pickle.load(f)
 
