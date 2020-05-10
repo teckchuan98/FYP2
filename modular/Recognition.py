@@ -14,7 +14,7 @@ def main():
     pre_frame = None
     false_track = {}
     redetect_threshold = 0
-    redetect_freqeunt = 100000000000000
+    redetect_freqeunt = 15
 
     while True:
         redetect = (redetect + 1) % redetect_freqeunt
