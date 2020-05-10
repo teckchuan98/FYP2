@@ -37,10 +37,10 @@ def start_tracker(box, label, rgb, inputQueue, outputQueue, id):
     rect = dlib.rectangle(box[0], box[1], box[2], box[3])
     t.start_track(rgb, rect)
 
+
     # loop indefinitely -- this function will be called as a daemon
     # process so we don't need to worry about joining it
     while tracking:
-        print(id)
         # attempt to grab the next frame from the input queue
         rgb = inputQueue.get()
 
@@ -99,7 +99,6 @@ def main():
 
             if redetect == 0:
                 tracking = False
-                cur_id += 1
                 inputQueues = []
                 outputQueues = []
                 boxes, labels, probs = detect(frame, ort_session, input_name)
@@ -138,6 +137,7 @@ def main():
 
                     # spawn a daemon process for a new object tracker
                     print(y)
+                    cur_id += 1
                     p = multiprocessing.Process(
                         target=start_tracker,
                         args=(y, face_names[i], rgb, iq, oq, cur_id))

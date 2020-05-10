@@ -16,6 +16,7 @@ def main():
 
             rgb_frame, temp = detect(frame, ort_session, input_name)
             face_locations, face_names, probability = recognise(temp, rgb_frame, recognizer, le, names, saved_embeds)
+            print(face_names)
             frame = tag(frame, face_locations, face_names, probability)
 
             fps = (fps + (1. / (time.time() - start))) / 2

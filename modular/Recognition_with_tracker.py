@@ -18,6 +18,7 @@ def main():
     pre_frame = None
     false_track = {}
 
+    cur_id = 0
     n_processors = 8
     pool = mp.Pool(processes=n_processors)
 
@@ -47,7 +48,8 @@ def main():
                 face_names, face_locations, probability = remove_unknown(face_names, face_locations, probability)
                 for i in range(len(face_locations)):
                     box = face_locations[i]
-                    output = pool.apply_async(track_by_tracker, [box, pre_frame, frame])
+                    cur_id += 1
+                    output = pool.apply_async(track_by_tracker, [box, pre_frame, frame, cur_id])
                     results.append(output.get())
 
                 face_locations = results

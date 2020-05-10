@@ -13,9 +13,11 @@ def main():
 
     pre_frame = None
     false_track = {}
+    redetect_threshold = 0
+    redetect_freqeunt = 15
 
     while True:
-        redetect = (redetect + 1) % 15
+        redetect = (redetect + 1) % redetect_freqeunt
         ret, frame = video_capture.read()
         if pre_frame is None:
             pre_frame = frame
@@ -25,10 +27,11 @@ def main():
 
             rgb_frame, temp = detect(frame, ort_session, input_name)
 
-            if redetect == 0:
+            if redetect == 0 or len([a for a in face_names if a != "unknown"]) <= redetect_threshold:
                 cur_names = []
                 cur_prob = []
                 temp, cur_names, cur_prob = recognise(temp, rgb_frame, recognizer, le, names, saved_embeds)
+                print(cur_names)
                 cur_names, cur_prob, temp = remove_duplicate(cur_names, temp, cur_prob)
                 cur_names, cur_prob, temp, false_track = update(cur_names, face_names, temp, face_locations, cur_prob, probability, false_track)
                 face_locations = temp

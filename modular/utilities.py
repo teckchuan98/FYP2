@@ -5,6 +5,7 @@ import face_recognition
 import onnxruntime as ort
 import pickle
 import dlib
+import time
 
 def remove_unknown(cur_names, cur_loc, cur_prob):
 
@@ -20,7 +21,7 @@ def remove_unknown(cur_names, cur_loc, cur_prob):
 
     return names, locations, probability
 
-def track_by_tracker(box, pre_frame, cur_frame):
+def track_by_tracker(box, pre_frame, cur_frame, id):
     # construct a dlib rectangle object from the bounding box
     # coordinates and then start the correlation tracker
     print("initalize tracker", box)
@@ -32,9 +33,15 @@ def track_by_tracker(box, pre_frame, cur_frame):
 
     rgb = cv2.cvtColor(pre_frame, cv2.COLOR_BGR2RGB)
     rgb2 = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
+    start = time.time()
     t.start_track(rgb, rect)
+    end = time.time()
+    print("time taken for initialize: ", end-start, id)
 
+    start = time.time()
     t.update(rgb2)
+    end = time.time()
+    print("time taken for update: ", end - start, id)
     pos = t.get_position()
 
     startX = int(pos.left())
@@ -99,7 +106,7 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_t
             if name not in false_track:
                 false_track[name] = 0
             else:
-                if false_track[name] >= threshold:
+                if false_track[name] > threshold:
                     false_track[name] = 0
                 else:
                     false_track[name] += 1
