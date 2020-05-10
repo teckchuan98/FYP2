@@ -154,11 +154,13 @@ def initialise():
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
-    video_capture = cv2.VideoCapture('chandler.mp4')
+    video_path= 'tracker testing video/chandler_test1'
+    video_capture = cv2.VideoCapture(video_path + ".mp4")
+    output_path = video_path + "_output.mp4"
 
     w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
     h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
+    out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
 
     return ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out
 
