@@ -7,6 +7,25 @@ import pickle
 import dlib
 import time
 
+def initialise():
+    ort_session = ort.InferenceSession('ultra_light_640.onnx')
+    input_name = ort_session.get_inputs()[0].name
+
+    recognizer = pickle.loads(open("recognizer.pkl", "rb").read())
+    le = pickle.loads(open("le.pkl", "rb").read())
+    with open("embeddings.pkl", "rb") as f:
+        (saved_embeds, names) = pickle.load(f)
+
+    video_path= 'zoom_test1'
+    video_capture = cv2.VideoCapture(video_path + ".mp4")
+    output_path = video_path + "_output.mp4"
+
+    w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+    h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
+
+    return ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out
+
 def remove_unknown(cur_names, cur_loc, cur_prob):
 
     names = []
@@ -143,26 +162,6 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_t
             cur_prob[cur_id] = probability[unknowns[i][2]]
 
     return cur_names, cur_prob, cur_locs, false_track
-
-
-def initialise():
-    ort_session = ort.InferenceSession('ultra_light_640.onnx')
-    input_name = ort_session.get_inputs()[0].name
-
-    recognizer = pickle.loads(open("recognizer.pkl", "rb").read())
-    le = pickle.loads(open("le.pkl", "rb").read())
-    with open("embeddings.pkl", "rb") as f:
-        (saved_embeds, names) = pickle.load(f)
-
-    video_path= 'chandler'
-    video_capture = cv2.VideoCapture(video_path + ".mp4")
-    output_path = video_path + "_output.mp4"
-
-    w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
-    h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
-
-    return ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out
 
 
 def detect(frame, ort_session, input_name):
