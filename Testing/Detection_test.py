@@ -8,14 +8,16 @@ def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')
     input_name = ort_session.get_inputs()[0].name
 
-    frame = cv2.imread('test2.jpg')
+
+    frame = cv2.imread('cases/51.jpg')
 
     start = time.time()
     if frame is not None:
-        detect(frame, ort_session, input_name)
+        x = detect(frame, ort_session, input_name)
     end = time.time()
 
     cv2.waitKey(0)
+    cv2.imwrite('cases/51_output.jpg', x)
     print(end-start)
 
 
