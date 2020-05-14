@@ -29,4 +29,4 @@ def detect(frame, ort_session, input_name):
     frame = cv2.resize(frame, (w, h))  # resize
 
     cv2.imshow('Video', frame)
-    #return frame
+    return frame
