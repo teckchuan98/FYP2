@@ -9,7 +9,7 @@ def main():
     input_name = ort_session.get_inputs()[0].name
 
 
-    frame = cv2.imread('cases/51.jpg')
+    frame = cv2.imread('cases/53.jpg')
 
     start = time.time()
     if frame is not None:
@@ -17,7 +17,7 @@ def main():
     end = time.time()
 
     cv2.waitKey(0)
-    cv2.imwrite('cases/51_output.jpg', x)
+    cv2.imwrite('cases/53_output.jpg', x)
     print(end-start)
 
 

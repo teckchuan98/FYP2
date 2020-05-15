@@ -9,7 +9,7 @@ def main():
     input_name = ort_session.get_inputs()[0].name
     ort_session, input_name, recognizer, le, (saved_embeds, names) = initialise()
 
-    frame = cv2.imread('cases/f1.jpg')
+    frame = cv2.imread('cases/f2.jpg')
 
     start = time.time()
     if frame is not None:
@@ -19,7 +19,7 @@ def main():
     end = time.time()
 
     cv2.waitKey(0)
-    cv2.imwrite('cases/f1_output.jpg', frame)
+    cv2.imwrite('cases/f2_output.jpg', frame)
     print(end-start)
 
 
