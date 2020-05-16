@@ -141,11 +141,11 @@ def track(pre_faces, cur_faces, names, probability):
     return results, results_names, results_prob
 
 def main():
-    ort_session = ort.InferenceSession('ultra_light_640.onnx')  # load face detection model
+    ort_session = ort.InferenceSession('../../ultra_light_640.onnx')  # load face detection model
     input_name = ort_session.get_inputs()[0].name
 
-    recognizer = pickle.loads(open("recognizer.pkl", "rb").read())
-    le = pickle.loads(open("le.pkl", "rb").read())
+    recognizer = pickle.loads(open("../../recognizer.pkl", "rb").read())
+    le = pickle.loads(open("../../le.pkl", "rb").read())
 
     video_capture = cv2.VideoCapture('chandler.mp4')
     #with open("embeddings.pkl", "rb") as f:

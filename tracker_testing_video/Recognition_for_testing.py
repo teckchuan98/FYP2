@@ -1,6 +1,6 @@
 import cv2
 import time
-from modular.tracker_testing_video.utilities_for_testing import detect, recognise, track, tag, initialise, update, remove_duplicate
+from tracker_testing_video.utilities_for_testing import detect, recognise, track, tag, initialise, update, remove_duplicate
 
 
 def main():
