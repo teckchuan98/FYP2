@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 import cv2
 import onnxruntime as ort
-from detector import detect
+from IndividualRecogniton.detector import detect
 
 
 def main():

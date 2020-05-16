@@ -5,7 +5,7 @@
 # @Last Modified time: 2019-10-30 11:25:26
 import cv2
 import onnxruntime as ort
-from Face_detector import detect
+from FaceDetectorOnly.Face_detector import detect
 import time
 
 def main():

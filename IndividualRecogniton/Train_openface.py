@@ -3,7 +3,7 @@ import pickle
 import os
 import cv2
 import onnxruntime as ort
-from detector import detect
+from IndividualRecogniton.detector import detect
 
 
 
