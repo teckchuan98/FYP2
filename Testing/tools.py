@@ -25,8 +25,8 @@ def detect(frame, ort_session, input_name):
         cv2.rectangle(frame, (x1, y1), (x2, y2), (80, 18, 236), 2)
 
 
-    cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
+   # cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
     frame = cv2.resize(frame, (w, h))  # resize
 
     cv2.imshow('Video', frame)
-    return frame
+    return frame, boxes.shape[0]

@@ -6,7 +6,9 @@ from imutils import paths
 import os
 import pytest
 
-def main():
+
+
+def test():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')
     input_name = ort_session.get_inputs()[0].name
     ort_session, input_name, recognizer, le, (saved_embeds, names) = initialise()
@@ -22,13 +24,12 @@ def main():
             frame = tag(frame, face_locations, face_names, probability)
             cv2.imwrite('output/' + str(i) + ".jpg", frame)
 
-            if len(face_names) > 0:
-                if face_names[0] == name:
-                    print("yes")
-                else:
-                    print("no")
+            #if len(face_names) > 0:
+                #assert face_names[0] == name, "Test passed"
+
+
         end = time.time()
         print(end - start)
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+ #   main()
