@@ -146,6 +146,21 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_t
 
 
 def initialise():
+    """
+    Description : This function loads detection model, recognition model and video file
+    Author : Jeetun Ishan
+    Last modified : 17/05/2020
+    param : none
+    Return :
+            ort_seesion: The initialised face detector model
+            recognizer: the initialised recognition model
+            le: label encoder of recognition model
+            (saved_embeds, names): saved embeddings and names from dataset
+            video_capture: the video input from video file
+            w: width of video frame
+            h: height of video frame
+            out: output file to write processed video
+    """
     ort_session = ort.InferenceSession('ultra_light_640.onnx')
     input_name = ort_session.get_inputs()[0].name
 
@@ -166,8 +181,25 @@ def initialise():
 
 
 def detect(frame, ort_session, input_name):
+    """
+    Description : This function takes the frame, ort session, input name and returns an rgb frame and a list of detected
+                  face locations
+    Author : Jeetun Ishan
+    Last modified : 17/05/2020
+    params :
+            frame: The video frame to perform detection
+            ort-session: The onnx detection model
+            input_name: input name of frame
+    Return :
+            rgb_frame: the frame converted to rgb format
+            temp: List of detected faces in x1, y1, x2, y2 format
+    """
+
+    #
     h, w, _ = frame.shape
-    # pre-process img acquired
+
+    # processing image starts here
+    # referenced from https://github.com/fyr91/face_detection/blob/master/detect_ultra_light.py
     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # convert bgr to rgb
     img = cv2.resize(img, (640, 480))  # resize
     img_mean = np.array([127, 127, 127])
@@ -176,10 +208,14 @@ def detect(frame, ort_session, input_name):
     img = np.expand_dims(img, axis=0)
     img = img.astype(np.float32)
 
+    # run the detection model on current frame
     confidences, boxes = ort_session.run(None, {input_name: img})
+
+    # the predict function will predict all boxes with human faces by using an IOU threshold
     boxes, labels, probs = predict(w, h, confidences, boxes, 0.7)
 
     temp = []
+    # changing the coordinates position as required for face recognition function
     for i in boxes:
         x1, y1, x2, y2 = i
         y = (y1, x2, y2, x1)
@@ -190,26 +226,57 @@ def detect(frame, ort_session, input_name):
 
 
 def recognise(temp, rgb_frame, recognizer, le, names, saved_embeds):
+    """
+    Description : This function takes the detected face locations and computes the embeddings and classify the face as
+                    being recognised or not
+    Author : Jeetun Ishan
+    Last modified : 17/05/2020
+    param :
+            temp: the detected face locations from the frame
+            rgb_frame: the current frame in rgb format
+            recognizer: recognition model
+            le: label encoder
+            names: names of person in dataset
+            saved embeds: the embeddings of people present in dataset
+    Return :
+            face_locations: location of recognised faces in x1, y1, x2, y2 format
+            face_names: names of recognised faces
+            probability: probability of classification
+    """
     face_locations = temp
+
+    # face_encodings function will take the current frame and face locations in the frame and will compute the face
+    # embeddings
     face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
     face_names = []
     probability = []
+
+    # Classification is performed for each face embedding generated and the euclidean distance of the embedding and
+    # the embeddings from dataset is calculated
+
     for face_encoding in face_encodings:
+
+        # euclidean distance process below
+
         diff = np.subtract(saved_embeds, face_encoding)
         dist = np.sum(np.square(diff), axis=1)
         idx = np.argmin(dist)
 
+        # if shortest distance is less than 0.29
         if dist[idx] < 0.29:
             id = names[idx]
         else:
             id = "unknown"
 
         face_encoding = [face_encoding]
+
+        # perform classification
         preds = recognizer.predict_proba(face_encoding)[0]
         j = np.argmax(preds)
         proba = preds[j]
         name = le.classes_[j]
 
+        # Conditions below ensures best recognition accuracy
         if proba > 0.6 and name == id:
             face_names.append(name)
             probability.append(proba)
@@ -270,6 +337,19 @@ def track(pre_faces, cur_faces, names, probability):
 
 
 def tag(frame, face_locations, face_names, probability):
+    """
+    Description : This function draw the bounding box around the recognized face
+    Author : Jeetun Ishan
+    Last modified : 17/05/2020
+    param :
+            frame: the frame to tag the person
+            face_locations: list of locations of the recognized persons
+            face_names: list of names of the recognised persons
+            probability: list of probability of classification
+    Return :
+            frame: the frame with the recognised persons tagged
+
+    """
     for (top, right, bottom, left), name, prob in zip(face_locations, face_names, probability):
         if name == "unknown":
             continue
@@ -277,7 +357,8 @@ def tag(frame, face_locations, face_names, probability):
         x = str(x)
         x = x[:3]
         x = x + "%"
-        # Draw a box around the face
+        # Draw a bounding box around the face
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+        # write name of person below bounding box
         cv2.putText(frame, name + " : " + x, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
     return frame

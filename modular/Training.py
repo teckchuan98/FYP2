@@ -7,6 +7,18 @@ from sklearn.svm import SVC
 
 
 def encode(i, imagePath, imagePaths):
+    """
+    Description : This functions encodes the face in a frame
+    Author : Jeetun Ishan
+    Last modified : 17/05/2020
+    params :
+            i: current frame number
+            imagePath: current image file
+            imagePaths: current location
+    Return :
+            name: name of person
+            list: list of face encoding or empty list
+    """
     print("processing image " + str(i + 1) + "/" + str(len(imagePaths)))
     name = imagePath.split(os.path.sep)[-2]
     image = face_recognition.load_image_file(imagePath)
@@ -19,6 +31,16 @@ def encode(i, imagePath, imagePaths):
 
 
 def savemodel(names, images):
+    """
+    Description : This functions trains svm model, saves the recognition model, label encoder and embeddings
+    Author : Jeetun Ishan
+    Last modified : 17/05/2020
+    params :
+            names: names of person
+            images: embeddings of persons in dataset
+    Return : none
+    Reference: https://www.pyimagesearch.com/2018/09/24/opencv-face-recognition/
+    """
     data = {"embeddings": images, "names": names}
 
     le = LabelEncoder()
