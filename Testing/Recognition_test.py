@@ -4,17 +4,20 @@ import time
 import cv2
 from imutils import paths
 import os
-import pytest
+import sys
 
 
 
-def test():
+def main():
     ort_session = ort.InferenceSession('ultra_light_640.onnx')
     input_name = ort_session.get_inputs()[0].name
     ort_session, input_name, recognizer, le, (saved_embeds, names) = initialise()
 
     imagePaths = list(paths.list_images("val"))
+    total = 0
+    count = 0
     for (i, imagePath) in enumerate(imagePaths):
+        total += 1
         name = imagePath.split(os.path.sep)[-2]
         frame = cv2.imread(imagePath)
         start = time.time()
@@ -26,10 +29,30 @@ def test():
 
             #if len(face_names) > 0:
                 #assert face_names[0] == name, "Test passed"
+            name = imagePath.split(os.path.sep)[-1]
+            x = ""
+
+            for a in name:
+                if not a.isdigit():
+                    x = x + a
+                else:
+                    break
+            if len(face_names) == 1:
+                result = face_names[0]
+                print(result, x)
+                if result == x:
+                    count += 1
+
 
 
         end = time.time()
-        print(end - start)
+        #print(end - start)
+        #print(i)
+    print(str(count) + " passed out of " + str(total))
 
-#if __name__ == "__main__":
- #   main()
+
+
+
+
+if __name__ == "__main__":
+    main()

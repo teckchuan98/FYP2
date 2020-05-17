@@ -191,7 +191,7 @@ def recognise(temp, rgb_frame, recognizer, le, names, saved_embeds):
         dist = np.sum(np.square(diff), axis=1)
         idx = np.argmin(dist)
 
-        if dist[idx] < 0.3:
+        if dist[idx] < 0.25:
             id = names[idx]
         else:
             id = "unknown"
@@ -202,17 +202,21 @@ def recognise(temp, rgb_frame, recognizer, le, names, saved_embeds):
         proba = preds[j]
         name = le.classes_[j]
 
-        if proba > 0.5 and name == id:
+        #if proba > 0.5 and name == id:
+            #face_names.append(name)
+            #probability.append(proba)
+        #elif proba > 0.7 and id == "unknown" and name != "unknown":
+            #face_names.append(name)
+            #probability.append(proba)
+        #elif id != "unknown" and name == "unknown":
+            #face_names.append(id)
+            #probability.append(proba)
+       # else:
+           # face_names.append("unknown")
+            #probability.append(proba)
+
+        if proba > 0.6:
             face_names.append(name)
-            probability.append(proba)
-        elif proba > 0.6 and id == "unknown" and name != "unknown":
-            face_names.append(name)
-            probability.append(proba)
-        elif id != "unknown" and name == "unknown":
-            face_names.append(id)
-            probability.append(proba)
-        else:
-            face_names.append("unknown")
             probability.append(proba)
 
     return face_locations, face_names, probability
