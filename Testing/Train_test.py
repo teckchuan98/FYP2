@@ -24,7 +24,7 @@ def savemodel(names, images):
     le = LabelEncoder()
     labels = le.fit_transform(data["names"])
 
-    recognizer = SVC(kernel="rbf")
+    recognizer = SVC(kernel="rbf", probability=True)
     recognizer.fit(data["embeddings"], labels)
 
     # write the names and encodings to disk

@@ -215,7 +215,7 @@ def recognise(temp, rgb_frame, recognizer, le, names, saved_embeds):
            # face_names.append("unknown")
             #probability.append(proba)
 
-        if proba > 0.6:
+        if proba > 0.5:
             face_names.append(name)
             probability.append(proba)
 
