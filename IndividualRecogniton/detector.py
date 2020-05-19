@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from modular.Compute_detections import predict
+from Code_Deliverables.Compute_detections import predict
 
 
 def detect(frame, ort_session, input_name):

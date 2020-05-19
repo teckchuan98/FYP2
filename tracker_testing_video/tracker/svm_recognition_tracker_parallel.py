@@ -1,9 +1,9 @@
 import cv2
-from detector import detect
+from IndividualRecogniton.detector import detect
 import time
 import dlib
 import multiprocessing as mp
-from modular.utilities import detect, recognise, tag, initialise, update, remove_duplicate
+from Code_Deliverables.utilities import detect, recognise, tag, initialise, update, remove_duplicate
 
 def remove_unknown(cur_names, cur_loc, cur_prob):
 
