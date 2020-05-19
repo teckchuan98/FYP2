@@ -51,5 +51,9 @@ Intall the dlib libraries like shown below for GPU support:
 
 Since face_recognition is dependent on the dlib library, it should be installed after dlib hs been installed.
 
+### **How to run the program:**
+
+Type here
+
 
 
