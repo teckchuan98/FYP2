@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from Compute_detections import predict
+from modular.Compute_detections import predict
 import time
 
 # function takes frame, ort session, input name and returns frame with detected faces
