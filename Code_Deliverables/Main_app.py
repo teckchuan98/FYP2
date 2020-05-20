@@ -9,6 +9,10 @@ from tkinter import *
 from tkinter import filedialog
 from PIL import ImageTk, Image
 import os.path
+from Code_Deliverables.Training import encode, savemodel
+from Code_Deliverables.utilities import initialiseDetector,initialiseRecognizer, detect,recognise,track,tag
+from imutils import paths
+import pickle
 
 # from tkinter.ttk import *
 
@@ -122,8 +126,16 @@ class Fyp:
         self.btn2.pack(pady=(10, 10))
 
         self.delay = 1
-        self.update()
+        self.fps = 0.0
+        self.ort_session, self.input_name = initialiseDetector()
+        try:
+            self.recognizer, self.le, (self.saved_embeds, self.names) = initialiseRecognizer()
+        except FileNotFoundError:
+            self.recognizer = None
+            self.le = None
+            self.saved_embeds, self.names = None, None
 
+        self.update()
         self.window.withdraw()
         self.window.mainloop()
 
@@ -221,19 +233,28 @@ class Fyp:
 
     def progress_bar(self):
         self.progress['value'] = 5
-        self.counter_test = 0
-        while self.progress['value'] < 100:
-            self.counter_test += 1
-            self.label_progress.config(text=self.counter_test)
+        imagePaths = list(paths.list_images("dataset"))
+        names = []
+        images = []
+        for (i, imagePath) in enumerate(imagePaths):
+            message = "processing image " + str(i + 1) + "/" + str(len(imagePaths))
+            self.label_progress.config(text=message)
             self.label.config(text=' Training in Progress ' + '\n' + 'Do not exit')
             self.progress['value'] += 5
             self.app_window.update_idletasks()
-            time.sleep(1.0)
+            name, encoding = encode(i, imagePath, imagePaths)
+            if len(encoding) > 0:
+                images.append(encoding)
+                names.append(name)
+        savemodel(names, images)
+        self.recognizer = pickle.loads(open("models/recognizer.pkl", "rb").read())
+        self.le = pickle.loads(open("models/le.pkl", "rb").read())
         self.label.config(text=' Training Completed ')
+
 
     # function that allow users to select and open file within given constraints
     def open_file(self):
-        if os.path.isfile('UI_Components/fyp.txt'):
+        if os.path.isfile('models/le.pkl') and os.path.isfile('models/recognizer.pkl') and os.path.isfile('models/embeddings.pkl'):
             self.window_label.config(text='Select File in Mp4 Format')
             self.result = filedialog.askopenfile(initialdir="/Users/User/Desktop/Testing", title="Select File",
                                                  filetypes=(("mp4 files", "*.mp4"), ("all files", "*.*")))
@@ -252,7 +273,7 @@ class Fyp:
     # clear the canvas and stop the video
     def kill_file(self):
         self.canvas.delete('all')
-        self.canvas.create_image(320, 180, image=self.image, anchor=CENTER)
+        self.canvas.create_image(320, 90, image=self.image, anchor=NW)
         if self.vid is not None:
             self.vid.end_video()
         self.vid = None
@@ -274,8 +295,18 @@ class Fyp:
             if self.vid is not None:
                 ret, frame = self.vid.get_frame()
                 if frame is not None:
+                    start = time.time()
+                    rgb_frame, temp = detect(frame, self.ort_session, self.input_name)
+                    face_locations, face_names, probability = recognise(temp, rgb_frame, self.recognizer, self.le, self.names, self.saved_embeds)
+                    frame = tag(frame, face_locations, face_names, probability)
+
+                    self.vid.write(frame)
+
+                    self.fps = (self.fps + (1. / (time.time() - start))) / 2
+                    cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 0, 0), 2)
                     self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
                     self.canvas.create_image(0, 0, image=self.photo, anchor=tkinter.NW)
+
                 else:
                     self.kill_file()
 
@@ -291,20 +322,23 @@ class VideoCapture:
 
         self.w = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.h = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        #self.out = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30,
-                                  # (int(self.w), int(self.h)))
+        self.out = cv2.VideoWriter('outputs/output.mp4', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30,
+                                   (int(self.w), int(self.h)))
 
     def get_frame(self):
         ret, frame = None, None
         if self.vid.isOpened():
             ret, frame = self.vid.read()
-            #self.out.write(frame)
             if ret:
                 return ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             else:
                 return ret, None
         else:
             return ret, frame
+
+    def write(self, frame):
+        self.out.write(frame)
+
 
     def end_video(self):
         if self.vid.isOpened():

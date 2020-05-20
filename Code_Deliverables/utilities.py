@@ -168,7 +168,6 @@ def initialise():
     le = pickle.loads(open("models/le.pkl", "rb").read())
     with open("models/embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
-
     video_path = 'inputs/chandler'
     video_capture = cv2.VideoCapture(video_path + ".mp4")
     output_path = "outputs/" + video_path + "_output.mp4"
@@ -178,6 +177,39 @@ def initialise():
     out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
 
     return ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out
+
+def initialiseRecognizer():
+    """
+    Description : This function loads recognition model
+    Author : Jeetun Ishan
+    Last modified : 20/05/2020
+    param : none
+    Return :
+            ort_seesion: The initialised face detector model
+            recognizer: the initialised recognition model
+            le: label encoder of recognition model
+            (saved_embeds, names): saved embeddings and names from dataset
+    """
+    recognizer = pickle.loads(open("models/recognizer.pkl", "rb").read())
+    le = pickle.loads(open("models/le.pkl", "rb").read())
+    with open("models/embeddings.pkl", "rb") as f:
+        (saved_embeds, names) = pickle.load(f)
+
+    return recognizer, le, (saved_embeds, names)
+
+def initialiseDetector():
+    """
+    Description : This function loads detection model
+    Author : Jeetun Ishan
+    Last modified : 20/05/2020
+    param : none
+    Return :
+            ort_seesion: The initialised face detector model
+    """
+    ort_session = ort.InferenceSession('models/ultra_light_640.onnx')
+    input_name = ort_session.get_inputs()[0].name
+
+    return ort_session, input_name
 
 
 def detect(frame, ort_session, input_name):
@@ -362,7 +394,7 @@ def tag(frame, face_locations, face_names, probability):
         x = x[:3]
         x = x + "%"
         # Draw a bounding box around the face
-        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+        cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
         # write name of person below bounding box
-        cv2.putText(frame, name + " : " + x, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+        cv2.putText(frame, name + " : " + x, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 0, 0), 2)
     return frame
