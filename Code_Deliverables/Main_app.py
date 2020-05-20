@@ -212,6 +212,7 @@ class Fyp:
         self.label = Label(self.app_window, text="", font=("Courier", 10))
         self.label.pack(pady=(0, 10))
 
+    # This is to keep track of who to tag in the video at a particular moment
     def tracker(self, name, x):
         if name not in self.track:
             self.track.append(name)
@@ -220,7 +221,7 @@ class Fyp:
             self.track.remove(name)
             self.button[x].config(bg='black')
 
-    # window for tracking##############
+    # window for tracking
     def open_track(self):
         self.track_window = Toplevel()
         self.track_window.title('Tracking...')
@@ -239,7 +240,6 @@ class Fyp:
 
     def do_smth(self):
         self.label_topic.config(text='Yes')
-    # ###########################################
 
     def progress_bar(self):
         self.progress['value'] = 5
@@ -260,7 +260,6 @@ class Fyp:
         self.recognizer = pickle.loads(open("models/recognizer.pkl", "rb").read())
         self.le = pickle.loads(open("models/le.pkl", "rb").read())
         self.label.config(text=' Training Completed ')
-
 
     # function that allow users to select and open file within given constraints
     def open_file(self):
@@ -351,7 +350,6 @@ class VideoCapture:
 
     def write(self, frame):
         self.out.write(frame)
-
 
     def end_video(self):
         if self.vid.isOpened():
