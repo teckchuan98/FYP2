@@ -9,10 +9,12 @@ from tkinter import *
 from tkinter import filedialog
 from PIL import ImageTk, Image
 import os.path
-from Code_Deliverables.Training import encode, savemodel
-from Code_Deliverables.utilities import initialiseDetector, initialiseRecognizer, detect, recognise, track, tagUI, remove_duplicate, update
 from imutils import paths
 import pickle
+from Code_Deliverables.Training import encode, savemodel
+from Code_Deliverables.detection_utillities import initialiseDetector, detect
+from Code_Deliverables.recognition_utilities import initialiseRecognizer, recognise
+from Code_Deliverables.tracking_utilities import track, tagUI, remove_duplicate, update
 
 # from tkinter.ttk import *
 
@@ -340,6 +342,7 @@ class Fyp:
                         self.face_locations, self.face_names, self.probability = track(self.face_locations, temp, self.face_names, self.probability)
 
                     frame = tagUI(frame, self.face_locations, self.face_names, self.probability, self.track)
+
 
                     self.fps = (self.fps + (1. / (time.time() - start))) / 2
                     cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,

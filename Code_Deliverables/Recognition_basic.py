@@ -1,6 +1,6 @@
 import cv2
 import time
-from Code_Deliverables.utilities import detect, recognise, track, tag, initialise, update, remove_duplicate
+from Code_Deliverables.utilities import detect, recognise, tag, initialise
 
 
 def main():
