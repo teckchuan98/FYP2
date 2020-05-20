@@ -398,3 +398,31 @@ def tag(frame, face_locations, face_names, probability):
         # write name of person below bounding box
         cv2.putText(frame, name + " : " + x, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 0, 0), 2)
     return frame
+
+def tagUI(frame, face_locations, face_names, probability, track):
+    """
+    Description : This function draw the bounding box around the recognized face
+    Author : Jeetun Ishan
+    Last modified : 17/05/2020
+    param :
+            frame: the frame to tag the person
+            face_locations: list of locations of the recognized persons
+            face_names: list of names of the recognised persons
+            probability: list of probability of classification
+    Return :
+            frame: the frame with the recognised persons tagged
+
+    """
+    for (top, right, bottom, left), name, prob in zip(face_locations, face_names, probability):
+        if name == "unknown":
+            continue
+        x = prob * 100
+        x = str(x)
+        x = x[:3]
+        x = x + "%"
+        if name in track:
+        # Draw a bounding box around the face
+            cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
+        # write name of person below bounding box
+            cv2.putText(frame, name + " : " + x, (left, bottom + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 0, 0), 2)
+    return frame

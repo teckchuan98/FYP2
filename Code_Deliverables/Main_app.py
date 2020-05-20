@@ -10,7 +10,7 @@ from tkinter import filedialog
 from PIL import ImageTk, Image
 import os.path
 from Code_Deliverables.Training import encode, savemodel
-from Code_Deliverables.utilities import initialiseDetector,initialiseRecognizer, detect,recognise,track,tag
+from Code_Deliverables.utilities import initialiseDetector,initialiseRecognizer, detect,recognise,track,tagUI
 from imutils import paths
 import pickle
 
@@ -128,6 +128,8 @@ class Fyp:
         self.delay = 1
         self.fps = 0.0
         self.ort_session, self.input_name = initialiseDetector()
+        self.track = []
+        self.button = []
         try:
             self.recognizer, self.le, (self.saved_embeds, self.names) = initialiseRecognizer()
         except FileNotFoundError:
@@ -210,20 +212,28 @@ class Fyp:
         self.label = Label(self.app_window, text="", font=("Courier", 10))
         self.label.pack(pady=(0, 10))
 
+    def tracker(self, name, x):
+        if name not in self.track:
+            self.track.append(name)
+            self.button[x].config(bg='red')
+        else:
+            self.track.remove(name)
+            self.button[x].config(bg='black')
+
     # window for tracking##############
     def open_track(self):
         self.track_window = Toplevel()
         self.track_window.title('Tracking...')
         self.track_window.iconbitmap(r"UI_Components/favicon.ico")
+        for i in range(len(self.le.classes_)):
+            if self.le.classes_[i] != "unknown":
+                self.button.append(Button(self.track_window, text=self.le.classes_[i],
+                                                  height=2,
+                                                  width=13,
+                                                  bg="black", fg="white",
+                                                  command= lambda text = self.le.classes_[i], x=i: self.tracker(text, x)))
 
-        for i in range(4):
-
-            # self.track_img = PhotoImage(file=r'identity.png')
-            # self.track_img = self.track_img.subsample(3, 3)
-
-            self.track_btn = Button(self.track_window, text='Bla bla', command=self.do_smth)
-            self.track_btn.pack()
-
+                self.button[i].pack()
         self.label_topic = Label(self.track_window, text='')
         self.label_topic.pack()
 
@@ -258,6 +268,7 @@ class Fyp:
             self.window_label.config(text='Select File in Mp4 Format')
             self.result = filedialog.askopenfile(initialdir="/Users/User/Desktop/Testing", title="Select File",
                                                  filetypes=(("mp4 files", "*.mp4"), ("all files", "*.*")))
+            self.open_track()
         else:
             self.window_label.config(text='Certain Files are missing')
             raise AssertionError('File does not exist')
@@ -273,6 +284,8 @@ class Fyp:
     # clear the canvas and stop the video
     def kill_file(self):
         self.canvas.delete('all')
+        self.track_window.destroy()
+        self.button = []
         self.canvas.create_image(320, 90, image=self.image, anchor=NW)
         if self.vid is not None:
             self.vid.end_video()
@@ -296,12 +309,12 @@ class Fyp:
                 ret, frame = self.vid.get_frame()
                 if frame is not None:
                     start = time.time()
+
                     rgb_frame, temp = detect(frame, self.ort_session, self.input_name)
                     face_locations, face_names, probability = recognise(temp, rgb_frame, self.recognizer, self.le, self.names, self.saved_embeds)
-                    frame = tag(frame, face_locations, face_names, probability)
+                    frame = tagUI(frame, face_locations, face_names, probability, self.track)
 
                     self.vid.write(frame)
-
                     self.fps = (self.fps + (1. / (time.time() - start))) / 2
                     cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 0, 0), 2)
                     self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
