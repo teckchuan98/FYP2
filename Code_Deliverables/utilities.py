@@ -185,7 +185,6 @@ def initialiseRecognizer():
     Last modified : 20/05/2020
     param : none
     Return :
-            ort_seesion: The initialised face detector model
             recognizer: the initialised recognition model
             le: label encoder of recognition model
             (saved_embeds, names): saved embeddings and names from dataset
@@ -401,7 +400,7 @@ def tag(frame, face_locations, face_names, probability):
 
 def tagUI(frame, face_locations, face_names, probability, track):
     """
-    Description : This function draw the bounding box around the recognized face
+    Description : This function draw the bounding box around the recognized face. Used for UI.
     Author : Jeetun Ishan
     Last modified : 17/05/2020
     param :

@@ -6,11 +6,11 @@ from Code_Deliverables.utilities import detect, recognise, track, tag, initialis
 def main():
     ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out = initialise()
     fps = 0.0
+
     redetect = -1
     face_locations = []
     face_names = []
     probability = []
-
     pre_frame = None
     false_track = {}
     redetect_threshold = 0

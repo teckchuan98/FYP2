@@ -10,7 +10,7 @@ from tkinter import filedialog
 from PIL import ImageTk, Image
 import os.path
 from Code_Deliverables.Training import encode, savemodel
-from Code_Deliverables.utilities import initialiseDetector,initialiseRecognizer, detect,recognise,track,tagUI
+from Code_Deliverables.utilities import initialiseDetector, initialiseRecognizer, detect, recognise, track, tagUI, remove_duplicate, update
 from imutils import paths
 import pickle
 
@@ -137,6 +137,15 @@ class Fyp:
             self.le = None
             self.saved_embeds, self.names = None, None
 
+        self.redetect = -1
+        self.face_locations = []
+        self.face_names = []
+        self.probability = []
+        self.pre_frame = None
+        self.false_track = {}
+        self.redetect_threshold = 0
+        self.redetect_freqeunt = 15
+
         self.update()
         self.window.withdraw()
         self.window.mainloop()
@@ -226,6 +235,7 @@ class Fyp:
         self.track_window = Toplevel()
         self.track_window.title('Tracking...')
         self.track_window.iconbitmap(r"UI_Components/favicon.ico")
+        self.button = []
         for i in range(len(self.le.classes_)):
             if self.le.classes_[i] != "unknown":
                 self.button.append(Button(self.track_window, text=self.le.classes_[i],
@@ -305,17 +315,39 @@ class Fyp:
     def update(self):
         if self.video_stopper is False:
             if self.vid is not None:
+                self.redetect = (self.redetect + 1) % self.redetect_freqeunt
                 ret, frame = self.vid.get_frame()
+
+                if self.pre_frame is None:
+                    self.pre_frame = frame
+                start = time.time()
+
                 if frame is not None:
-                    start = time.time()
 
                     rgb_frame, temp = detect(frame, self.ort_session, self.input_name)
-                    face_locations, face_names, probability = recognise(temp, rgb_frame, self.recognizer, self.le, self.names, self.saved_embeds)
-                    frame = tagUI(frame, face_locations, face_names, probability, self.track)
+
+                    if self.redetect == 0 or len([a for a in self.face_names if a != "unknown"]) <= self.redetect_threshold:
+                        cur_names = []
+                        cur_prob = []
+                        temp, cur_names, cur_prob = recognise(temp, rgb_frame, self.recognizer, self.le, self.names, self.saved_embeds)
+                        cur_names, cur_prob, temp = remove_duplicate(cur_names, temp, cur_prob)
+                        cur_names, cur_prob, temp, false_track = update(cur_names, self.face_names, temp, self.face_locations,
+                                                                        cur_prob, self.probability, self.false_track)
+                        self.face_locations = temp
+                        self.face_names = cur_names
+                        self.probability = cur_prob
+                    else:
+                        self.face_locations, self.face_names, self.probability = track(self.face_locations, temp, self.face_names, self.probability)
+
+                    frame = tagUI(frame, self.face_locations, self.face_names, self.probability, self.track)
+
+                    self.fps = (self.fps + (1. / (time.time() - start))) / 2
+                    cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
+                                (0, 0, 255), 2)
 
                     self.vid.write(frame)
-                    self.fps = (self.fps + (1. / (time.time() - start))) / 2
-                    cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 0, 0), 2)
+
+                    self.pre_frame = frame
                     self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
                     self.canvas.create_image(0, 0, image=self.photo, anchor=tkinter.NW)
 
