@@ -49,7 +49,7 @@ class Fyp:
         self.login = Toplevel()
         self.login.geometry('400x450')
 
-        self.login_img = ImageTk.PhotoImage(Image.open('identity.png'))
+        self.login_img = ImageTk.PhotoImage(Image.open('UI_Components/identity.png'))
         self.image_label = Label(self.login, image=self.login_img)
         self.image_label.pack(pady=(15,0))
 
@@ -110,7 +110,7 @@ class Fyp:
         self.canvas_width = 1000
         self.canvas = tkinter.Canvas(window, height=self.canvas_height, width=self.canvas_width, bg='black')
         self.canvas.pack(pady=(10, 0), padx=(10, 10))
-        self.image = PhotoImage(file='play_button.png')
+        self.image = PhotoImage(file='UI_Components/play_button.png')
         self.canvas.create_image(320, 90, image=self.image, anchor=NW)
 
         # button to end the processing frames
@@ -147,9 +147,9 @@ class Fyp:
     def open_app(self):
         self.window2 = Toplevel()
         self.window2.title('About the App')
-        self.window2.iconbitmap(r"favicon.ico")
+        self.window2.iconbitmap(r"UI_Components/favicon.ico")
         self.window2.geometry('400x400')
-        self.my_img = ImageTk.PhotoImage(Image.open('identity.png'))
+        self.my_img = ImageTk.PhotoImage(Image.open('UI_Components/identity.png'))
         self.image_label = Label(self.window2, image=self.my_img)
         self.image_label.pack(pady=(50, 0))
         self.label_topic2 = Label(self.window2, text='Video Tagging Based On Person' + '\n' + 'Identification',
@@ -160,7 +160,7 @@ class Fyp:
     def open_team(self):
         self.window3 = Toplevel()
         self.window3.title('About the Team')
-        self.window3.iconbitmap(r"favicon.ico")
+        self.window3.iconbitmap(r"UI_Components/favicon.ico")
         self.window3.geometry('200x200')
         self.team_label = Label(self.window3, text='Team 5A',
                                 font="Courier 15 bold")
@@ -173,13 +173,13 @@ class Fyp:
     def run_app(self):
         self.window4 = Toplevel()
         self.window4.title('How to run the App')
-        self.window4.iconbitmap(r"favicon.ico")
+        self.window4.iconbitmap(r"UI_Components/favicon.ico")
 
     # window for model training
     def train_model(self):
         self.app_window = Toplevel()
         self.app_window.title('How to run the App')
-        self.app_window.iconbitmap(r"favicon.ico")
+        self.app_window.iconbitmap(r"UI_Components/favicon.ico")
         self.app_window.geometry('400x400')
 
         self.label_topic = Label(self.app_window, text='Click Train' + '\n' + 'To Start Training the Model',
@@ -202,7 +202,7 @@ class Fyp:
     def open_track(self):
         self.track_window = Toplevel()
         self.track_window.title('Tracking...')
-        self.track_window.iconbitmap(r"favicon.ico")
+        self.track_window.iconbitmap(r"UI_Components/favicon.ico")
 
         for i in range(4):
 
@@ -233,7 +233,7 @@ class Fyp:
 
     # function that allow users to select and open file within given constraints
     def open_file(self):
-        if os.path.isfile('fyp.txt'):
+        if os.path.isfile('UI_Components/fyp.txt'):
             self.window_label.config(text='Select File in Mp4 Format')
             self.result = filedialog.askopenfile(initialdir="/Users/User/Desktop/Testing", title="Select File",
                                                  filetypes=(("mp4 files", "*.mp4"), ("all files", "*.*")))
