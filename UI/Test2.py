@@ -111,7 +111,7 @@ class Fyp:
         self.canvas = tkinter.Canvas(window, height=self.canvas_height, width=self.canvas_width, bg='black')
         self.canvas.pack(pady=(10, 0), padx=(10, 10))
         self.image = PhotoImage(file='play_button.png')
-        self.canvas.create_image(300, 300, image=self.image, anchor=NW)
+        self.canvas.create_image(320, 90, image=self.image, anchor=NW)
 
         # button to end the processing frames
         self.btn1 = Button(window, text="End", height=2, width=9, command=self.kill_file)
@@ -231,6 +231,7 @@ class Fyp:
             time.sleep(1.0)
         self.label.config(text=' Training Completed ')
 
+    # function that allow users to select and open file within given constraints
     def open_file(self):
         if os.path.isfile('fyp.txt'):
             self.window_label.config(text='Select File in Mp4 Format')
@@ -248,6 +249,7 @@ class Fyp:
             self.window_label.config(text='Select File in Mp4 Format')
             self.vid = VideoCapture(self.result.name)
 
+    # clear the canvas and stop the video
     def kill_file(self):
         self.canvas.delete('all')
         self.canvas.create_image(320, 180, image=self.image, anchor=CENTER)
@@ -256,6 +258,7 @@ class Fyp:
         self.vid = None
         self.video_stopper = False
 
+    # pause and play functionality
     def pause_play(self):
         if self.vid is not None:
             if self.video_stopper is False:
@@ -265,6 +268,7 @@ class Fyp:
                 self.video_stopper = False
                 self.btn2.config(text='Pause')
 
+    # update the frames in the canvas with a given delay
     def update(self):
         if self.video_stopper is False:
             if self.vid is not None:
