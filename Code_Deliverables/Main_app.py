@@ -12,10 +12,9 @@ import os.path
 from imutils import paths
 import pickle
 from Code_Deliverables.Training import encode, savemodel
-from Code_Deliverables.detection_utillities import initialiseDetector, detect
-from Code_Deliverables.recognition_utilities import initialiseRecognizer, recognise
-from Code_Deliverables.tracking_utilities import track, tagUI, remove_duplicate, update
-
+from Code_Deliverables.utillities_detection import initialiseDetector, detect
+from Code_Deliverables.utilities_recognition import initialiseRecognizer, recognise
+from Code_Deliverables.utilities_tracking import track, tagUI, remove_duplicate, update
 # from tkinter.ttk import *
 
 
@@ -325,7 +324,6 @@ class Fyp:
                 start = time.time()
 
                 if frame is not None:
-
                     rgb_frame, temp = detect(frame, self.ort_session, self.input_name)
 
                     if self.redetect == 0 or len([a for a in self.face_names if a != "unknown"]) <= self.redetect_threshold:
@@ -343,13 +341,10 @@ class Fyp:
 
                     frame = tagUI(frame, self.face_locations, self.face_names, self.probability, self.track)
 
-
                     self.fps = (self.fps + (1. / (time.time() - start))) / 2
                     cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
                                 (0, 0, 255), 2)
-
                     self.vid.write(frame)
-
                     self.pre_frame = frame
                     self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
                     self.canvas.create_image(0, 0, image=self.photo, anchor=tkinter.NW)
