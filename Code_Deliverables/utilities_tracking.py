@@ -1,55 +1,21 @@
 import cv2
-import dlib
-import time
-
-
-def remove_unknown(cur_names, cur_loc, cur_prob):
-
-    names = []
-    locations = []
-    probability = []
-
-    for i in range(len(cur_names)):
-        if cur_names[i] != "unknown":
-            names.append(cur_names[i])
-            locations.append(cur_loc[i])
-            probability.append(cur_prob[i])
-
-    return names, locations, probability
-
-def track_by_tracker(box, pre_frame, cur_frame, id):
-    # construct a dlib rectangle object from the bounding box
-    # coordinates and then start the correlation tracker
-    print("initalize tracker", box)
-    t = dlib.correlation_tracker()
-    y1, x2, y2, x1 = box
-    box = (x1, y1, x2, y2)
-    print(box[0], box[1], box[2], box[3])
-    rect = dlib.rectangle(box[0], box[1], box[2], box[3])
-
-    rgb = cv2.cvtColor(pre_frame, cv2.COLOR_BGR2RGB)
-    rgb2 = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
-    start = time.time()
-    t.start_track(rgb, rect)
-    end = time.time()
-    print("time taken for initialize: ", end-start, id)
-
-    start = time.time()
-    t.update(rgb2)
-    end = time.time()
-    print("time taken for update: ", end - start, id)
-    pos = t.get_position()
-
-    startX = int(pos.left())
-    startY = int(pos.top())
-    endX = int(pos.right())
-    endY = int(pos.bottom())
-
-    del t
-
-    return startY, endX, endY, startX
 
 def remove_duplicate(cur_names, cur_locs, cur_prob):
+    """
+    Description : This function select the faces names with highest probability, if there is multiple persons recognized as the same identity.
+    Author : Tan Kai Yi
+    Last modified : 20/05/2020
+    param :
+            cur_names: the current detected faces names, faces cant be recognized will be named "unknown"
+            cur_locs: the current detected faces locations
+            cur_prob: the current detected faces probabilities. The probability show the similarity of a person to the recognition result identity
+
+    Return :
+            names: the updated detected faces names, where the duplicate names is filtered out and only the name with highest probability is in the result list
+            locations: the updated detected faces locations, where the location of faces with duplicate name is filtered out
+            probability: the updated probability of detected faces, where the probabilities of faces with duplicate name is filtered out
+
+    """
     names = []
     locations = []
     probability = []
@@ -75,14 +41,30 @@ def remove_duplicate(cur_names, cur_locs, cur_prob):
             probability.append(prob)
             locations.append(cur_locs[max_id])
 
-    cur_names = names
-    cur_locs = locations
-    cur_prob = probability
-
-    return cur_names, cur_prob, cur_locs
+    return names, probability, locations
 
 
 def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_track):
+    """
+    Description : This function is used to untrack the person who continuously fail to be recognized (false track) more than a specific times (threshold) in the recgnition process
+    Author : Tan Kai Yi
+    Last modified : 20/05/2020
+    param :
+            cur_names: the current detected faces names, faces cant be recognized will be named "unknown"
+            pre_names: the previous detected faces names in previous frame, faces cant be recognized will be named "unknown"
+            cur_locs: the current detected faces locations
+            pre_locs: the previous detected faces locations in previous frame
+            cur_prob: the current detected faces probabilities. The probability show the similarity of a person to the recognition result identity
+            pre_prob: the previous detected faces probabilities in previous frame
+            false_track: a dictionary to store the times of a person continuously fail to be recognized in the recognition process (false track)
+
+    Return :
+            cur_names: the updated detected faces names, where names that has a false track more than a specific times is removed
+            cur_locs: the updated detected faces locations, where the location of faces that has a false track more than a specific times is removed
+            cur_prob: the updated probability of detected faces, where the probabilities of faces that has a false track more than a specific times is removed
+            false_track: the updated dictionary of the number of false track for each person. If a person has false track more than a specific time, it will be removed in the cur_names list and his/her false track count will reset to 0 in dictionary
+
+    """
     threshold = 2
     names = []
     locations = []
@@ -121,8 +103,6 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_t
             cur_id = unknowns[i][0]
             face1 = cur_locs[cur_id]
             dif = abs(face1[0] - face[0]) + abs(face1[1] - face[1]) + abs(face1[2] - face[2]) + abs(face1[3] - face[3])
-            ##print("check")
-            ##print(dif)
             if dif <= 300:
                 if min_dif == None or min_dif > dif:
                     min_dif = dif
@@ -141,31 +121,44 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_t
     return cur_names, cur_prob, cur_locs, false_track
 
 
-def track(pre_faces, cur_faces, names, probability):
+def track(pre_faces, cur_locs, cur_names, probability):
+    """
+    Description : This function to track person who is successfully recognized, as the recognition process will only run once per n frames. During this period, the person need to be tracked.
+    Author : Tan Kai Yi
+    Last modified : 20/05/2020
+    param :
+            cur_names: the current detected faces names, faces cant be recognized will be named "unknown"
+            cur_locs: the current detected faces locations
+            probability: the current detected faces probabilities. The probability show the similarity of a person to the recognition result identity
+
+    Return :
+            results: the updated detected faces locations
+            results_names: the updated detected faces names, which aligned to results (results[i] is the face location with name results_names[i])
+            results_prob: the updated probability of detected faces, which aligned to results (results[i] is the face location with probability results_prob[i])
+
+    """
     results = []
     results_names = []
     results_prob = []
     for i in range(len(pre_faces)):
         results.append((-1, (-1, -1, -1, -1)))
-        results_names.append(names[i])
+        results_names.append(cur_names[i])
         results_prob.append(probability[i])
 
-    for n in range(len(cur_faces)):
-        face = cur_faces[n]
+    for n in range(len(cur_locs)):
+        face = cur_locs[n]
         min_dif = None
         min_id = -1
         for i in range(len(pre_faces)):
             face1 = pre_faces[i]
             dif = abs(face1[0] - face[0]) + abs(face1[1] - face[1]) + abs(face1[2] - face[2]) + abs(face1[3] - face[3])
-            ##print("check")
-            ##print(dif)
             if dif <= 300:
                 if (min_dif == None or min_dif > dif):
                     min_dif = dif
                     min_id = i
         if (min_id != -1):
             if results[min_id][0] == -1 or min_dif < results[min_id][0]:
-                results[min_id] = (min_dif, cur_faces[n])
+                results[min_id] = (min_dif, cur_locs[n])
 
     temp = results
     temp_names = results_names
