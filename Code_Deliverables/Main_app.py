@@ -42,6 +42,7 @@ class Fyp:
         self.window2 = None
         self.window3 = None
         self.window4 = None
+        self.window5 = None
         self.photo = None
         self.my_img = None
         self.image_label = None
@@ -88,6 +89,8 @@ class Fyp:
         self.app_run.add_command(label='Train Model', command=self.train_model)
         self.app_run.add_separator()
         self.app_run.add_command(label='Track', command=self.open_track)
+        self.app_run.add_separator()
+        self.app_run.add_command(label='Open time stamps', command=self.opentime)
 
         # second menu drop down
         self.sub_menu = Menu(self.menu_bar)
@@ -146,6 +149,13 @@ class Fyp:
         self.false_track = {}
         self.redetect_threshold = 0
         self.redetect_freqeunt = 15
+        self.frame_no = 0
+        self.present = []
+        self.f = None
+        self.second = 0
+        self.minute = 0
+        self.second2 = 0
+        self.timestamp = "00:00"
 
         self.update()
         self.window.withdraw()
@@ -198,6 +208,18 @@ class Fyp:
         self.window4 = Toplevel()
         self.window4.title('How to run the App')
         self.window4.iconbitmap(r"UI_Components/favicon.ico")
+
+    # function to open time stamps
+    def opentime(self):
+        self.window5 = Toplevel()
+        self.window5.title('Time stamps')
+        self.window5.iconbitmap(r"UI_Components/favicon.ico")
+
+        file = open("outputs/timestamp.txt")
+        data = file.read()
+        file.close()
+        results = Label(self.window5, text=data)
+        results.pack()
 
     # window for model training
     def train_model(self):
@@ -279,6 +301,7 @@ class Fyp:
             self.result = filedialog.askopenfile(initialdir="/Users/User/Desktop/Testing", title="Select File",
                                                  filetypes=(("mp4 files", "*.mp4"), ("all files", "*.*")))
             self.open_track()
+            self.f = open("outputs/timestamp.txt", "w")
             for i in range(len(self.le.classes_)):
                 self.track.append(self.le.classes_[i])  # adding all persons to track
         else:
@@ -298,11 +321,28 @@ class Fyp:
         self.canvas.delete('all')
         self.track_window.destroy()
         self.button = []
+        self.second = 0
+        self.minute = 0
+        self.second2 = 0
+        self.timestamp = "00:00"
+        self.redetect = -1
+        self.face_locations = []
+        self.face_names = []
+        self.probability = []
+        self.pre_frame = None
+        self.false_track = {}
+        self.redetect_threshold = 0
+        self.redetect_freqeunt = 15
+        self.frame_no = 0
+        self.present = []
+
+        self.f.close()
         self.canvas.create_image(320, 90, image=self.image, anchor=NW)
         if self.vid is not None:
             self.vid.end_video()
         self.vid = None
         self.video_stopper = False
+        self.opentime()
 
     # pause and play functionality
     def pause_play(self):
@@ -343,17 +383,49 @@ class Fyp:
 
                     frame = tagUI(frame, self.face_locations, self.face_names, self.probability, self.track)
 
+                    # Time stamp here
+                    self.frame_no += 1
+                    if self.frame_no % 30 == 0:
+                        self.second += 1
+                        self.minute = self.second // 60
+                        self.second2 = self.second % 60
+                        if self.minute < 10:
+                            minute_str = "0" + str(self.minute)
+                        else:
+                            minute_str = str(self.minute)
+
+                        if self.second2 < 10:
+                            second_str = "0" + str(self.second2)
+                        else:
+                            second_str = str(self.second2)
+                        self.timestamp = minute_str + ":" + second_str
+
+                        if len(self.present) > 0:
+                            s = ""
+                            for b in self.present:
+                                s = s + b + ", "
+                            s = self.timestamp + "  " + s[:-2]
+                            self.f.write(s)
+                            self.f.write("\n")
+                            self.present = []
+                    else:
+                        for a in self.face_names:
+                            if a not in self.present and a != "unknown":
+                                self.present.append(a)
+
                     self.fps = (self.fps + (1. / (time.time() - start))) / 2
                     cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
                                 (255, 0, 0), 2)
 
+                    cv2.putText(frame, self.timestamp, (int(self.vid.w) - 65, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
+                                (255, 0, 0), 2)
+
                     x = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                     self.vid.write(x)
-
                     self.pre_frame = frame
-                    self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
+                    display = cv2.resize(frame, (1000, 500))
+                    self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(display))
                     self.canvas.create_image(0, 0, image=self.photo, anchor=tkinter.NW)
-
                 else:
                     self.kill_file()
 
