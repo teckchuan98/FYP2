@@ -242,7 +242,7 @@ class Fyp:
                 self.button.append(Button(self.track_window, text=self.le.classes_[i],
                                                   height=2,
                                                   width=13,
-                                                  bg="black", fg="white",
+                                                  bg="red", fg="white",
                                                   command= lambda text = self.le.classes_[i], x=i: self.tracker(text, x)))
 
                 self.button[i].pack()
@@ -279,6 +279,8 @@ class Fyp:
             self.result = filedialog.askopenfile(initialdir="/Users/User/Desktop/Testing", title="Select File",
                                                  filetypes=(("mp4 files", "*.mp4"), ("all files", "*.*")))
             self.open_track()
+            for i in range(len(self.le.classes_)):
+                self.track.append(self.le.classes_[i])  # adding all persons to track
         else:
             self.window_label.config(text='Certain Files are missing')
             raise AssertionError('File does not exist')
@@ -343,8 +345,11 @@ class Fyp:
 
                     self.fps = (self.fps + (1. / (time.time() - start))) / 2
                     cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                                (0, 0, 255), 2)
-                    self.vid.write(frame)
+                                (255, 0, 0), 2)
+
+                    x = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                    self.vid.write(x)
+
                     self.pre_frame = frame
                     self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
                     self.canvas.create_image(0, 0, image=self.photo, anchor=tkinter.NW)
