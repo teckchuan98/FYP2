@@ -141,14 +141,14 @@ class Fyp:
             self.le = None
             self.saved_embeds, self.names = None, None
 
-        self.redetect = -1
+        self.rerecognized = -1
         self.face_locations = []
         self.face_names = []
         self.probability = []
         self.pre_frame = None
         self.false_track = {}
-        self.redetect_threshold = 0
-        self.redetect_freqeunt = 15
+        self.rerecognized_threshold = 0
+        self.rerecognized_freqeunt = 15
         self.frame_no = 0
         self.present = []
         self.f = None
@@ -325,14 +325,14 @@ class Fyp:
         self.minute = 0
         self.second2 = 0
         self.timestamp = "00:00"
-        self.redetect = -1
+        self.rerecognized = -1
         self.face_locations = []
         self.face_names = []
         self.probability = []
         self.pre_frame = None
         self.false_track = {}
-        self.redetect_threshold = 0
-        self.redetect_freqeunt = 15
+        self.rerecognized_threshold = 0
+        self.rerecognized_freqeunt = 15
         self.frame_no = 0
         self.present = []
 
@@ -358,7 +358,8 @@ class Fyp:
     def update(self):
         if self.video_stopper is False:
             if self.vid is not None:
-                self.redetect = (self.redetect + 1) % self.redetect_freqeunt
+                ## frequency of running recognition process
+                self.rerecognized = (self.rerecognized + 1) % self.rerecognized_freqeunt
                 ret, frame = self.vid.get_frame()
 
                 if self.pre_frame is None:
@@ -366,19 +367,24 @@ class Fyp:
                 start = time.time()
 
                 if frame is not None:
+                    ## detect faces from current frame
                     rgb_frame, temp = detect(frame, self.ort_session, self.input_name)
 
-                    if self.redetect == 0 or len([a for a in self.face_names if a != "unknown"]) <= self.redetect_threshold:
+                    ## if it is time to run recognition process, or there is no one recognized yet, run recognition process
+                    if self.rerecognized == 0 or len([a for a in self.face_names if a != "unknown"]) <= self.rerecognized_threshold:
                         cur_names = []
                         cur_prob = []
                         temp, cur_names, cur_prob = recognise(temp, rgb_frame, self.recognizer, self.le, self.names, self.saved_embeds)
+                        ## if there is multiple person recognized as the same identity, choose the highest similarity and remove others
                         cur_names, cur_prob, temp = remove_duplicate(cur_names, temp, cur_prob)
+                        ## if someone is recognized as unknown in current frame, but was successfully recognized in previous frame, and his/her false track is still less than specific number, update his/her name and locations to current frame
                         cur_names, cur_prob, temp, false_track = update(cur_names, self.face_names, temp, self.face_locations,
                                                                         cur_prob, self.probability, self.false_track)
                         self.face_locations = temp
                         self.face_names = cur_names
                         self.probability = cur_prob
                     else:
+                        ## track the person by using previous frame and current frame face locations
                         self.face_locations, self.face_names, self.probability = track(self.face_locations, temp, self.face_names, self.probability)
 
                     frame = tagUI(frame, self.face_locations, self.face_names, self.probability, self.track)
