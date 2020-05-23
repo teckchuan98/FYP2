@@ -46,14 +46,14 @@ class FaceDetectionUnitTest(unittest.TestCase):
                     break
 
     def test_track(self):
-        pre_locs = [(1, 1, 1, 1), (10, 10, 10, 10), (100, 100, 100, 100), (1000, 1000, 1000, 1000)]
-        cur_locs = [(101, 101, 101, 101), (11, 11, 11, 11), (1001, 1001, 1001, 1001), (2, 2, 2, 2)]
+        cur_locs =  [(2, 2, 2, 2), (802, 802, 802, 802), (402, 402, 402, 402), (3001, 3001, 3001, 3001)]
+        pre_locs = [(1, 1, 1, 1), (401, 401, 401, 401), (801, 801, 801, 801), (1201, 1201, 1201, 1201)]
         pre_names = ["Kai Yi", "Ishan", "Teck Chuan", "Jiawen"]
         probability = [0.8, 0.7, 0.9, 0.6]
-        cur_locs, cur_names, probability = track(pre_locs, cur_locs, pre_names, probability)
-        self.assertEqual(cur_locs, [(2, 2, 2, 2), (11, 11, 11, 11), (101, 101, 101, 101), (1001, 1001, 1001, 1001)])
-        self.assertEqual(cur_names,  ["Kai Yi", "Ishan", "Teck Chuan", "Jiawen"])
-        self.assertEqual(probability, [0.8, 0.7, 0.9, 0.6])
+        update_locs, cur_names, probability = track(pre_locs, cur_locs, pre_names, probability)
+        self.assertEqual(update_locs, [(2, 2, 2, 2), (402, 402, 402, 402), (802, 802, 802, 802)])
+        self.assertEqual(cur_names,  ["Kai Yi", "Ishan", "Teck Chuan"])
+        self.assertEqual(probability, [0.8, 0.7, 0.9])
 
     def test_update(self):
         cur_names = ["Kai Yi", "unknown", "Teck Chuan", "unknown"]
