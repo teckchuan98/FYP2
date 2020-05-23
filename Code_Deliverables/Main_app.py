@@ -92,6 +92,9 @@ class Fyp:
         self.app_run.add_separator()
         self.app_run.add_command(label='Open time stamps', command=self.opentime)
 
+        self.app_run.add_separator()
+        self.app_run.add_command(label='Open camera', command=self.open_camera)
+
         # second menu drop down
         self.sub_menu = Menu(self.menu_bar)
         self.menu_bar.add_cascade(label='About', menu=self.sub_menu)
@@ -315,6 +318,13 @@ class Fyp:
         if self.result is not None:
             self.window_label.config(text='Select File in Mp4 Format')
             self.vid = VideoCapture(self.result.name)
+
+    def open_camera(self):
+        self.vid = VideoCapture(0)
+        self.open_track()
+        self.f = open("outputs/timestamp.txt", "w")
+        for i in range(len(self.le.classes_)):
+            self.track.append(self.le.classes_[i])  # adding all persons to track
 
     # clear the canvas and stop the video
     def kill_file(self):
