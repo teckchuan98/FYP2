@@ -76,14 +76,11 @@ def recognise(temp, rgb_frame, recognizer, le, names, saved_embeds):
         name = le.classes_[j]
 
         # Conditions below ensures best recognition accuracy
-        if proba > 0.6 and name == id:
+        if proba > 0.8:
             face_names.append(name)
             probability.append(proba)
-        elif proba > 0.7 and id == "unknown" and name != "unknown":
+        elif name == id and proba > 0.7:
             face_names.append(name)
-            probability.append(proba)
-        elif id != "unknown" and name == "unknown":
-            face_names.append(id)
             probability.append(proba)
         else:
             face_names.append("unknown")
