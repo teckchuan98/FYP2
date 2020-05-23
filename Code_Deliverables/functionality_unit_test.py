@@ -21,8 +21,8 @@ class FaceDetectionUnitTest(unittest.TestCase):
         input_name = ort_session.get_inputs()[0].name
         frame = cv2.imread('../Unit_Testing_Performance/face_detection_test_cases/Normal/48.jpg')
         count = 0
-        x, count = detect(frame, ort_session, input_name)
-        self.assertNotEqual(count, 0)
+        frame, cur_loc = detect(frame, ort_session, input_name)
+        self.assertLess(0, len(cur_loc))
 
     def test_initialiseRecognizer(self):
         recognizer = pickle.loads(open("models/recognizer.pkl", "rb").read())
@@ -70,6 +70,8 @@ class FaceDetectionUnitTest(unittest.TestCase):
         self.assertEqual(cur_locs, [(2, 2, 2, 2), (11, 11, 11, 11), (101, 101, 101, 101), (1001, 1001, 1001, 1001)])
         self.assertEqual(cur_names,  ["Kai Yi", "Ishan", "Teck Chuan", "unknown"])
         self.assertEqual(cur_prob, [0.8, 0.8, 0.6, 0.2])
+        self.assertEqual(false_track['Jiawen'], 0)
+        self.assertEqual(false_track['Ishan'], 2)
 
     def test_remove_duplicate(self):
         cur_name = ["Kai Yi", "Kai Yi", "Kai Yi", "Kai Yi"]
