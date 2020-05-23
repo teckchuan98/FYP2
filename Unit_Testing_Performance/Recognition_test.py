@@ -1,5 +1,5 @@
 import onnxruntime as ort
-from Unit_Testing.utilities2 import detect, recognise, initialise, tag, remove_duplicate
+from Unit_Testing_Performance.utilities2 import detect, recognise, initialise, tag, remove_duplicate
 import time
 import cv2
 from imutils import paths

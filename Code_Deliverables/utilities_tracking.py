@@ -138,7 +138,7 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_t
     return cur_names, cur_prob, cur_locs, false_track
 
 
-def track(pre_locs, cur_locs, cur_names, probability):
+def track(pre_locs, cur_locs, pre_names, probability):
     """
     Description : Function to track person who is successfully recognized in previous frame, as the recognition process will only run once per n frames. During this period, the person need to be tracked.
     Author : Tan Kai Yi
@@ -160,7 +160,7 @@ def track(pre_locs, cur_locs, cur_names, probability):
     results_prob = []
     for i in range(len(pre_locs)):
         results.append((-1, (-1, -1, -1, -1)))
-        results_names.append(cur_names[i])
+        results_names.append(pre_names[i])
         results_prob.append(probability[i])
 
     ## for each face in current detected faces, find the closet face which is detected in previous frame, and update its name, new location and probability.
