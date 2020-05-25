@@ -156,7 +156,7 @@ def recognise(temp, rgb_frame, recognizer, le, names, saved_embeds):
         proba = preds[j]
         name = le.classes_[j]
 
-        if proba > 0.85 and id != "unknown":
+        if proba > 0.70 and id != "unknown":
             face_names.append(id)
             probability.append(proba)
             face_locations.append(temp[i])
