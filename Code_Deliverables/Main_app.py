@@ -50,6 +50,8 @@ class Fyp:
         self.track_img = None
         self.track_btn = None
         self.counter_test = None
+        self.fps_avr = 0
+        self.frame_count = 0
 
         # login window ##################
         self.login = Toplevel()
@@ -353,6 +355,7 @@ class Fyp:
         self.vid = None
         self.video_stopper = False
         self.opentime()
+        print(self.fps_avr / self.frame_count)
 
     # pause and play functionality
     def pause_play(self):
@@ -429,7 +432,9 @@ class Fyp:
                             if a not in self.present and a != "unknown":
                                 self.present.append(a)
 
-                    self.fps = (self.fps + (1. / (time.time() - start))) / 2
+                    self.fps = 1. / (time.time() - start)
+                    self.fps_avr += self.fps
+                    self.frame_count += 1
                     cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
                                 (255, 0, 0), 2)
 
