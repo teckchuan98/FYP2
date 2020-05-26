@@ -45,7 +45,7 @@ def savemodel(names, images):
 
 def main():
     print("Going through database")
-    imagePaths = list(paths.list_images("face_recognition_test_dataset"))
+    imagePaths = list(paths.list_images("face_recognition_video_test_dataset"))
     names = []
     images = []
     for (i, imagePath) in enumerate(imagePaths):

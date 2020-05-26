@@ -55,6 +55,9 @@ def main():
                          result_per_sec.add(name)
 
             elif frame_count != 0 and frame_count %30 == 0:
+                for name in face_names:
+                    if name != "unknown":
+                         result_per_sec.add(name)
                 period = frame_count/30
                 period_txt = str(period-1) + ".00 - " + str(period) + ".00 : "
                 for name in result_per_sec:
