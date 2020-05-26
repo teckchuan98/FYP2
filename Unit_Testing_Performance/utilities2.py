@@ -5,6 +5,27 @@ import face_recognition
 import onnxruntime as ort
 import pickle
 
+def initialise_video_test():
+    ort_session = ort.InferenceSession('ultra_light_640.onnx')
+    input_name = ort_session.get_inputs()[0].name
+
+    recognizer = pickle.loads(open("recognizer.pkl", "rb").read())
+    le = pickle.loads(open("le.pkl", "rb").read())
+    with open("embeddings.pkl", "rb") as f:
+        (saved_embeds, names) = pickle.load(f)
+
+    video_path= 'face_recognition_video_test_video/Tom_Holland1'
+    video_capture = cv2.VideoCapture(video_path + ".mp4")
+    output_path = video_path + "_output.mp4"
+
+    result_file = open(video_path + "_output.txt", "w")
+
+    w = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+    h = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (int(w), int(h)))
+
+    return result_file, ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out
+
 def remove_duplicate(cur_names, cur_locs, cur_prob):
     names = []
     locations = []
