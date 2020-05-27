@@ -229,7 +229,7 @@ class Fyp:
     # window for model training
     def train_model(self):
         self.app_window = Toplevel()
-        self.app_window.title('How to run the App')
+        self.app_window.title('Train model')
         self.app_window.iconbitmap(r"UI_Components/favicon.ico")
         self.app_window.geometry('400x400')
 
