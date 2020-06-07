@@ -137,8 +137,7 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_t
 
     return cur_names, cur_prob, cur_locs, false_track
 
-
-def track(pre_locs, cur_locs, pre_names, probability):
+def track(tracker, cur_frame):
     """
     Description : Function to track person who is successfully recognized in previous frame, as the recognition process will only run once per n frames. During this period, the person need to be tracked.
     Author : Tan Kai Yi
@@ -155,47 +154,16 @@ def track(pre_locs, cur_locs, pre_names, probability):
             results_prob: the updated probability of detected faces, which aligned to results (results[i] is the face location with probability results_prob[i])
 
     """
-    results = []
-    results_names = []
-    results_prob = []
-    for i in range(len(pre_locs)):
-        results.append((-1, (-1, -1, -1, -1)))
-        results_names.append(pre_names[i])
-        results_prob.append(probability[i])
+    rgb2 = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
+    tracker.update(rgb2)
+    pos = tracker.get_position()
 
-    ## for each face in current detected faces, find the closet face which is detected in previous frame, and update its name, new location and probability.
-    for n in range(len(cur_locs)):
-        face = cur_locs[n]
-        min_dif = None
-        min_id = -1
-        for i in range(len(pre_locs)):
-            face1 = pre_locs[i]
-            dif = abs(face1[0] - face[0]) + abs(face1[1] - face[1]) + abs(face1[2] - face[2]) + abs(face1[3] - face[3])
-            ## a threshold to decide if the faces detected in previous frame is close enough to current face
-            if dif <= 300:
-                ## choose the closest face's information which detected in previous frame
-                if (min_dif == None or min_dif > dif):
-                    min_dif = dif
-                    min_id = i
-        if (min_id != -1):
-            if results[min_id][0] == -1 or min_dif < results[min_id][0]:
-                results[min_id] = (min_dif, cur_locs[n])
+    startX = int(pos.left())
+    startY = int(pos.top())
+    endX = int(pos.right())
+    endY = int(pos.bottom())
 
-    temp = results
-    temp_names = results_names
-    temp_prob = results_prob
-    results_names = []
-    results = []
-    results_prob = []
-
-    for i in range(len(temp)):
-        result = temp[i]
-        if result[0] != -1:
-            results.append(result[1])
-            results_names.append(temp_names[i])
-            results_prob.append((temp_prob[i]))
-
-    return results, results_names, results_prob
+    return startY, endX, endY, startX
 
 def tagUI(frame, face_locations, face_names, probability, track):
     """

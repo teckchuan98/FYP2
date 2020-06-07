@@ -1,7 +1,8 @@
 import cv2
 import time
 from Unit_Testing_Performance.utilities2 import detect, recognise, track, tag, update, remove_duplicate,initialise_video_test
-
+import dlib
+import multiprocessing.dummy as mp
 
 def main():
     result_file, ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out = initialise_video_test()
@@ -18,6 +19,9 @@ def main():
     frame_count = 0
     fps_avr = 0
     result_per_sec = set()
+    n_processors = 8
+    trackers = []
+    pool = mp.Pool(processes=n_processors)
 
     while True:
         redetect = (redetect + 1) % redetect_freqeunt
@@ -31,8 +35,6 @@ def main():
             rgb_frame, temp = detect(frame, ort_session, input_name)
 
             if redetect == 0 or len([a for a in face_names if a != "unknown"]) <= redetect_threshold:
-                cur_names = []
-                cur_prob = []
                 temp, cur_names, cur_prob = recognise(temp, rgb_frame, recognizer, le, names, saved_embeds)
                 print(cur_names)
                 cur_names, cur_prob, temp = remove_duplicate(cur_names, temp, cur_prob)
@@ -40,9 +42,26 @@ def main():
                 face_locations = temp
                 face_names = cur_names
                 probability = cur_prob
+                del(trackers)
+                trackers = []
+                for i in range(len(face_locations)):
+                    top, right, bottom, left = face_locations[i]
+                    box = (left, top, right, bottom)
+                    # construct a dlib rectangle object from the bounding box
+                    # coordinates and then start the correlation tracker
+
+                    t = dlib.correlation_tracker()
+                    rect = dlib.rectangle(box[0], box[1], box[2], box[3])
+                    t.start_track(rgb_frame, rect)
+                    trackers.append(t)
 
             else:
-                face_locations, face_names, probability = track(face_locations, temp, face_names, probability)
+
+                results = []
+                for tracker in trackers:
+                    output = pool.apply_async(track, [tracker,frame])
+                    results.append(output.get())
+                face_locations = results
 
             frame = tag(frame, face_locations, face_names, probability)
 

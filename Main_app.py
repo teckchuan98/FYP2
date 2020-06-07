@@ -15,6 +15,8 @@ from Training import encode, savemodel
 from utillities_detection import initialiseDetector, detect
 from utilities_recognition import initialiseRecognizer, recognise
 from utilities_tracking import track, tagUI, remove_duplicate, update
+import dlib
+import multiprocessing.dummy as mp
 # from tkinter.ttk import *
 
 
@@ -52,6 +54,9 @@ class Fyp:
         self.counter_test = None
         self.fps_avr = 0
         self.frame_count = 0
+        self.n_processors = 8
+        self.trackers = []
+        self.pool = mp.Pool(processes=self.n_processors)
 
         # login window ##################
         self.login = Toplevel()
@@ -396,9 +401,25 @@ class Fyp:
                         self.face_locations = temp
                         self.face_names = cur_names
                         self.probability = cur_prob
+                        del (self.trackers)
+                        self.trackers = []
+                        for i in range(len(self.face_locations)):
+                            top, right, bottom, left = self.face_locations[i]
+                            box = (left, top, right, bottom)
+                            # construct a dlib rectangle object from the bounding box
+                            # coordinates and then start the correlation tracker
+
+                            t = dlib.correlation_tracker()
+                            rect = dlib.rectangle(box[0], box[1], box[2], box[3])
+                            t.start_track(rgb_frame, rect)
+                            self.trackers.append(t)
                     else:
                         ## track the person by using previous frame and current frame face locations
-                        self.face_locations, self.face_names, self.probability = track(self.face_locations, temp, self.face_names, self.probability)
+                        results = []
+                        for tracker in self.trackers:
+                            output = self.pool.apply_async(track, [tracker, frame])
+                            results.append(output.get())
+                        self.face_locations = results
 
                     frame = tagUI(frame, self.face_locations, self.face_names, self.probability, self.track)
 
