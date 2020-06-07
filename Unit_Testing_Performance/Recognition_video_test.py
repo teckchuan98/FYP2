@@ -1,6 +1,6 @@
 import cv2
 import time
-from Unit_Testing_Performance.utilities2 import detect, recognise, track, tag, update, remove_duplicate,initialise_video_test
+from Unit_Testing_Performance.utilities2 import detect, recognise, track, tag, update, remove_duplicate,initialise_video_test, remove_unknown
 import dlib
 import multiprocessing.dummy as mp
 
@@ -32,9 +32,8 @@ def main():
 
         if frame is not None:
 
-            rgb_frame, temp = detect(frame, ort_session, input_name)
-
             if redetect == 0 or len([a for a in face_names if a != "unknown"]) <= redetect_threshold:
+                rgb_frame, temp = detect(frame, ort_session, input_name)
                 temp, cur_names, cur_prob = recognise(temp, rgb_frame, recognizer, le, names, saved_embeds)
                 print(cur_names)
                 cur_names, cur_prob, temp = remove_duplicate(cur_names, temp, cur_prob)
@@ -42,6 +41,7 @@ def main():
                 face_locations = temp
                 face_names = cur_names
                 probability = cur_prob
+                face_locations, face_names, probability = remove_unknown(face_locations, face_names, probability)
                 del(trackers)
                 trackers = []
                 for i in range(len(face_locations)):
@@ -64,10 +64,11 @@ def main():
                 face_locations = results
 
             frame = tag(frame, face_locations, face_names, probability)
-
-            fps = (1. / (time.time() - start))
-            fps_avr += fps
-            frame_count += 1
+            timeUsed = (time.time() - start)
+            if timeUsed != 0:
+                fps = (1. / timeUsed)
+                fps_avr += fps
+                frame_count += 1
             if frame_count % 30 != 0 :
                 for name in face_names:
                     if name != "unknown":

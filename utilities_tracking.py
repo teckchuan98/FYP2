@@ -165,6 +165,19 @@ def track(tracker, cur_frame):
 
     return startY, endX, endY, startX
 
+def remove_unknown(face_location, face_name, prob):
+    result_loc = []
+    result_name = []
+    result_prob = []
+    for i in range(len(face_location)):
+        name = face_name[i]
+        if name != "unknown":
+            result_loc.append(face_location[i])
+            result_name.append(face_name[i])
+            result_prob.append(prob[i])
+
+    return result_loc, result_name, result_prob
+
 def tagUI(frame, face_locations, face_names, probability, track):
     """
     Description : This function draw the bounding box around the recognized face. Used for UI.

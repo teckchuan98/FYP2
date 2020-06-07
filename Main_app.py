@@ -14,7 +14,7 @@ import pickle
 from Training import encode, savemodel
 from utillities_detection import initialiseDetector, detect
 from utilities_recognition import initialiseRecognizer, recognise
-from utilities_tracking import track, tagUI, remove_duplicate, update
+from utilities_tracking import track, tagUI, remove_duplicate, update, remove_unknown
 import dlib
 import multiprocessing.dummy as mp
 # from tkinter.ttk import *
@@ -385,11 +385,11 @@ class Fyp:
                 start = time.time()
 
                 if frame is not None:
-                    ## detect faces from current frame
-                    rgb_frame, temp = detect(frame, self.ort_session, self.input_name)
 
                     ## if it is time to run recognition process, or there is no one recognized yet, run recognition process
                     if self.rerecognized == 0 or len([a for a in self.face_names if a != "unknown"]) <= self.rerecognized_threshold:
+                        ## detect faces from current frame
+                        rgb_frame, temp = detect(frame, self.ort_session, self.input_name)
                         cur_names = []
                         cur_prob = []
                         temp, cur_names, cur_prob = recognise(temp, rgb_frame, self.recognizer, self.le, self.names, self.saved_embeds)
@@ -401,6 +401,7 @@ class Fyp:
                         self.face_locations = temp
                         self.face_names = cur_names
                         self.probability = cur_prob
+                        self.face_locations, self.face_names, self.probability = remove_unknown(self.face_locations, self.face_names, self.probability)
                         del (self.trackers)
                         self.trackers = []
                         for i in range(len(self.face_locations)):
@@ -453,9 +454,11 @@ class Fyp:
                             if a not in self.present and a != "unknown":
                                 self.present.append(a)
 
-                    self.fps = 1. / (time.time() - start)
-                    self.fps_avr += self.fps
-                    self.frame_count += 1
+                    timeUsed = (time.time() - start)
+                    if timeUsed != 0:
+                        self.fps = (1. / timeUsed)
+                        self.fps_avr += self.fps
+                        self.frame_count += 1
                     cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
                                 (255, 0, 0), 2)
 
