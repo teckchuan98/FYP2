@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from Code_Deliverables.Compute_detections import predict
+from Compute_detections import predict
 import face_recognition
 import onnxruntime as ort
 import pickle

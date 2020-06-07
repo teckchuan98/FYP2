@@ -1,6 +1,6 @@
 import cv2
 import time
-from Unit_Testing_Performance.utilities2 import detect, recognise, track, tag, initialise, update, remove_duplicate,initialise_video_test
+from Unit_Testing_Performance.utilities2 import detect, recognise, track, tag, update, remove_duplicate,initialise_video_test
 
 
 def main():
