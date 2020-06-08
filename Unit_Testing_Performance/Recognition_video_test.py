@@ -1,5 +1,5 @@
 import cv2
-import time
+import timeit
 from Unit_Testing_Performance.utilities2 import detect, recognise, track, tag, update, remove_duplicate,initialise_video_test, remove_unknown
 import dlib
 import multiprocessing.dummy as mp
@@ -7,6 +7,7 @@ import multiprocessing.dummy as mp
 def main():
     result_file, ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out = initialise_video_test()
     fps = 0.0
+    total_processing_start = timeit.default_timer()
 
     redetect = -1
     face_locations = []
@@ -14,8 +15,7 @@ def main():
     probability = []
     pre_frame = None
     false_track = {}
-    redetect_threshold = 0
-    redetect_freqeunt = 15
+    redetect_freqeunt = 5
     frame_count = 0
     fps_avr = 0
     result_per_sec = set()
@@ -28,14 +28,13 @@ def main():
         ret, frame = video_capture.read()
         if pre_frame is None:
             pre_frame = frame
-        start = time.time()
+        start = timeit.default_timer()
 
         if frame is not None:
 
-            if redetect == 0 or len([a for a in face_names if a != "unknown"]) <= redetect_threshold:
+            if redetect == 0:
                 rgb_frame, temp = detect(frame, ort_session, input_name)
                 temp, cur_names, cur_prob = recognise(temp, rgb_frame, recognizer, le, names, saved_embeds)
-                print(cur_names)
                 cur_names, cur_prob, temp = remove_duplicate(cur_names, temp, cur_prob)
                 cur_names, cur_prob, temp, false_track = update(cur_names, face_names, temp, face_locations, cur_prob, probability, false_track)
                 face_locations = temp
@@ -64,11 +63,14 @@ def main():
                 face_locations = results
 
             frame = tag(frame, face_locations, face_names, probability)
-            timeUsed = (time.time() - start)
+            timeUsed = (timeit.default_timer() - start)
             if timeUsed != 0:
                 fps = (1. / timeUsed)
-                fps_avr += fps
-                frame_count += 1
+            else:
+                fps = fps_avr/frame_count
+            fps = min(30, fps)
+            fps_avr += fps
+            frame_count += 1
             if frame_count % 30 != 0 :
                 for name in face_names:
                     if name != "unknown":
@@ -102,6 +104,8 @@ def main():
             print(fps_avr/frame_count)
             result_file.close
             break
+
+    print(timeit.default_timer() - total_processing_start)
 
     video_capture.release()
     out.release()

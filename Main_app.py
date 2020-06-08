@@ -4,7 +4,7 @@ import cv2
 import PIL.Image
 import PIL.ImageTk
 import tkinter
-import time
+import timeit
 from tkinter import *
 from tkinter import filedialog
 from PIL import ImageTk, Image
@@ -151,14 +151,13 @@ class Fyp:
             self.le = None
             self.saved_embeds, self.names = None, None
 
-        self.rerecognized = -1
+        self.redetect = -1
         self.face_locations = []
         self.face_names = []
         self.probability = []
         self.pre_frame = None
         self.false_track = {}
-        self.rerecognized_threshold = 0
-        self.rerecognized_freqeunt = 15
+        self.redetect_freqeunt = 15
         self.frame_no = 0
         self.present = []
         self.f = None
@@ -342,14 +341,14 @@ class Fyp:
         self.minute = 0
         self.second2 = 0
         self.timestamp = "00:00"
-        self.rerecognized = -1
+        self.redetect = -1
         self.face_locations = []
         self.face_names = []
         self.probability = []
         self.pre_frame = None
         self.false_track = {}
         self.rerecognized_threshold = 0
-        self.rerecognized_freqeunt = 15
+        self.redetect_freqeunt = 15
         self.frame_no = 0
         self.present = []
 
@@ -377,17 +376,17 @@ class Fyp:
         if self.video_stopper is False:
             if self.vid is not None:
                 ## frequency of running recognition process
-                self.rerecognized = (self.rerecognized + 1) % self.rerecognized_freqeunt
+                self.redetect = (self.redetect + 1) % self.redetect_freqeunt
                 ret, frame = self.vid.get_frame()
 
                 if self.pre_frame is None:
                     self.pre_frame = frame
-                start = time.time()
+                start = timeit.default_timer()
 
                 if frame is not None:
 
                     ## if it is time to run recognition process, or there is no one recognized yet, run recognition process
-                    if self.rerecognized == 0 or len([a for a in self.face_names if a != "unknown"]) <= self.rerecognized_threshold:
+                    if self.redetect == 0:
                         ## detect faces from current frame
                         rgb_frame, temp = detect(frame, self.ort_session, self.input_name)
                         cur_names = []
@@ -454,11 +453,14 @@ class Fyp:
                             if a not in self.present and a != "unknown":
                                 self.present.append(a)
 
-                    timeUsed = (time.time() - start)
+                    timeUsed = (timeit.default_timer() - start)
                     if timeUsed != 0:
                         self.fps = (1. / timeUsed)
-                        self.fps_avr += self.fps
-                        self.frame_count += 1
+                    else:
+                        self.fps = self.fps_avr/self.frame_count
+                    self.fps = min(30, self.fps)
+                    self.fps_avr += self.fps
+                    self.frame_count += 1
                     cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
                                 (255, 0, 0), 2)
 

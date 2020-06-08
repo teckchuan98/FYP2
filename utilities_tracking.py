@@ -139,19 +139,15 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_t
 
 def track(tracker, cur_frame):
     """
-    Description : Function to track person who is successfully recognized in previous frame, as the recognition process will only run once per n frames. During this period, the person need to be tracked.
+    Description : Function to track person who is successfully recognized in previous frame, using the dlib correlation tracker.
     Author : Tan Kai Yi
-    Last modified : 20/05/2020
+    Last modified : 08/06/2020
     param :
-            pre_locs: the previous detected faces locations in previous frame
-            cur_names: the current detected faces names, faces cant be recognized will be named "unknown"
-            cur_locs: the current detected faces locations
-            probability: the current detected faces probabilities. The probability show the similarity of a person to the recognition result identity
+            tracker: the dlib tracker used to track the face
+            cur_frame: the current frame for the tracker to update its pre-track face location
 
     Return :
-            results: the updated detected faces locations
-            results_names: the updated detected faces names, which aligned to results (results[i] is the face location with name results_names[i])
-            results_prob: the updated probability of detected faces, which aligned to results (results[i] is the face location with probability results_prob[i])
+            startY, endX, endY, startX: the updated faces locations tracked by the tracker
 
     """
     rgb2 = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
@@ -165,16 +161,31 @@ def track(tracker, cur_frame):
 
     return startY, endX, endY, startX
 
-def remove_unknown(face_location, face_name, prob):
+def remove_unknown(cur_loc, cur_name, cur_prob):
+    """
+    Description : Function to remove the face with face name "unknown", and remove its face location and probability as well
+    Author : Tan Kai Yi
+    Last modified : 08/06/2020
+    param :
+            cur_loc: the current detected faces locations
+            cur_name: the current detected faces names, faces cant be recognized will be named "unknown"
+            cur_prob: the current detected faces probabilities. The probability show the similarity of a person to the recognition result identity
+
+    Return :
+            result_loc: the detected faces locations after remove unknown faces
+            result_name: the detected faces names after remove names with "unknown"
+            result_prob: the detected faces probabilities after remove unknown faces
+
+    """
     result_loc = []
     result_name = []
     result_prob = []
-    for i in range(len(face_location)):
-        name = face_name[i]
+    for i in range(len(cur_loc)):
+        name = cur_name[i]
         if name != "unknown":
-            result_loc.append(face_location[i])
-            result_name.append(face_name[i])
-            result_prob.append(prob[i])
+            result_loc.append(cur_loc[i])
+            result_name.append(cur_name[i])
+            result_prob.append(cur_prob[i])
 
     return result_loc, result_name, result_prob
 
