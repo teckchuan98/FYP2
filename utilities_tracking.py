@@ -71,7 +71,7 @@ def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_t
 
     """
     ## set a threshold, to decide untrack a person after how many times of false track
-    threshold = 2
+    threshold = 3
     ## the names array only store the name with false track less than threshold
     names = []
     locations = []

@@ -14,7 +14,7 @@ def initialise_video_test():
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
-    video_path= 'face_recognition_video_test_video/Donald_Trump1'
+    video_path= 'face_recognition_video_test_video/Tzuyu1'
     video_capture = cv2.VideoCapture(video_path + ".mp4")
     output_path = video_path + "_output.mp4"
 
@@ -60,7 +60,7 @@ def remove_duplicate(cur_names, cur_locs, cur_prob):
 
 
 def update(cur_names, pre_names, cur_locs, pre_locs, cur_prob, pre_prob, false_track):
-    threshold = 2
+    threshold = 3
     names = []
     locations = []
     probability = []
