@@ -218,6 +218,12 @@ class Fyp:
         self.window4.title('How to run the App')
         self.window4.iconbitmap(r"UI_Components/favicon.ico")
 
+        file = open("inputs/help.txt")
+        data = file.read()
+        file.close()
+        results = Label(self.window4, text=data)
+        results.pack()
+
     # function to open time stamps
     def opentime(self):
         self.window5 = Toplevel()

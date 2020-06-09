@@ -1,0 +1,13 @@
+1. To prepare the picture data of one person, create a new folder and name it after that person’s name. 
+
+2. This folder should contain a minimum of 20 pictures of that person for high accuracy of recognition.
+
+3. This new folder should then be copied into the dataset folder and after a minimum of two persons has been added, the application is ready to be launched.
+
+4. Click on the top left “run” button and click “Train Model”. Another window will pop up. Click on the “Train” button.
+
+5. From the main application interface, click on the “Select Video” button and you will be prompted to select a video file from any location.
+
+6. If you want to select a webcam as input source, click on the top left “run” button and click on “Open camera”.
+
+7. While the video is playing a pop-up window will give you the option to tag or untag specific persons in the video.
