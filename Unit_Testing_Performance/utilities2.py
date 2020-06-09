@@ -14,7 +14,7 @@ def initialise_video_test():
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
-    video_path= 'face_recognition_video_test_video/Tzuyu1'
+    video_path= 'face_recognition_video_test_video/None2'
     video_capture = cv2.VideoCapture(video_path + ".mp4")
     output_path = video_path + "_output.mp4"
 
@@ -197,13 +197,16 @@ def remove_unknown(face_location, face_name, prob):
 
     return result_loc, result_name, result_prob
 
-
+def track_kcf(tracker, frame):
+    ok, bbox = tracker.update(frame)
+    left, top, right, bottom = bbox
+    return int(top), int(right), int(bottom), int(left)
 
 def track(tracker, cur_frame):
+    pos = tracker.get_position()
     rgb2 = cv2.cvtColor(cur_frame, cv2.COLOR_BGR2RGB)
     tracker.update(rgb2)
     pos = tracker.get_position()
-
     startX = int(pos.left())
     startY = int(pos.top())
     endX = int(pos.right())
