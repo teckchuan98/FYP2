@@ -6,24 +6,25 @@ Explain aim of project
 
 ### **Prerequisites:**
 
-1. Python 3.5.2 64-bit
-2. Cmake 3.17.0 from https://cmake.org/
-3. CUDA supported GPU 
-4. CUDA 9.0 toolkit from https://developer.nvidia.com/cuda-90-download-archive?
-5. cuDNN 7.1.4 from https://developer.nvidia.com/cudnn
-6. Visual Studio 2019 with VisualC++ Tools for Cmake
+1. Install Python 3.5.2 64-bit (https://www.python.org/downloads/release/python-352/)
+2. Install Cmake 3.17.0 (https://cmake.org/)
+3. Have a CUDA supported GPU
+4. Download and install CUDA 9.0 toolkit (https://developer.nvidia.com/cuda-90-download-archive)
+5. Download and install cuDNN 7.1.4  (https://developer.nvidia.com/cudnn)
+6. Visual Studio 2019 with Visual C++ Tools for Cmake
+
 
 ### **Required python libraries:**
 
-1. onnxruntime 1.2.0	
+1. onnxruntime 1.2.0
 2. onnx 1.6.0
-3. face-recognition 1.2.3	
-4. sklearn 0.0
-5. imutils 0.5.3	
-6. numpy 1.18.1
-7. dlib	19.19.99
-8. opencv-python 4.2.0.32
-9. opencv-contrib-python 4.2.0.32
+3. sklearn 0.0
+4. imutils 0.5.3
+5. numpy 1.18.1
+6. opencv-python 4.2.0.32
+7. opencv-contrib-python 4.2.0.32
+8. multiprocessing.dummy
+ 
 
 
 ### **How to install:**
@@ -53,7 +54,8 @@ Since face_recognition is dependent on the dlib library, it should be installed 
 
 ### **How to run the program:**
 
-Type here
+Run Main_app.py by typing the following command in cmd:
 
+"Python Main_app.py"
 
 
