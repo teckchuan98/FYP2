@@ -1,6 +1,6 @@
 import cv2
 import timeit
-from Unit_Testing_Performance.utilities2 import detect, recognise, track_other_tracker, tag, update, remove_duplicate,initialise_video_test, remove_unknown
+from Unit_Testing_Performance.utilities2 import detect, recognise, track, tag, update, remove_duplicate,initialise_video_test, remove_unknown
 import dlib
 
 def main():
@@ -20,6 +20,7 @@ def main():
     result_per_sec = set()
     trackers = []
 
+
     while True:
         redetect = (redetect + 1) % redetect_freqeunt
         ret, frame = video_capture.read()
@@ -29,34 +30,13 @@ def main():
 
         if frame is not None:
 
-            if redetect == 0:
-                rgb_frame, temp = detect(frame, ort_session, input_name)
-                temp, cur_names, cur_prob = recognise(temp, rgb_frame, recognizer, le, names, saved_embeds)
-                cur_names, cur_prob, temp = remove_duplicate(cur_names, temp, cur_prob)
-                cur_names, cur_prob, temp, false_track = update(cur_names, face_names, temp, face_locations, cur_prob, probability, false_track)
-                face_locations = temp
-                face_names = cur_names
-                probability = cur_prob
-                face_locations, face_names, probability = remove_unknown(face_locations, face_names, probability)
-                del(trackers)
-                trackers = []
-                for i in range(len(face_locations)):
-                    top, right, bottom, left = face_locations[i]
-                    bbox = (left, top, right, bottom)
-                    # construct a dlib rectangle object from the bounding box
-                    # coordinates and then start the correlation tracker
-                    tracker = cv2.TrackerKCF_create()
-                    tracker.init(frame, bbox)
-                    trackers.append(tracker)
-
-            else:
-
-                results = []
-                print(len(trackers))
-                for tracker in trackers:
-                    output = track_other_tracker(tracker,frame)
-                    results.append(output)
-                face_locations = results
+            rgb_frame, temp = detect(frame, ort_session, input_name)
+            temp, cur_names, cur_prob = recognise(temp, rgb_frame, recognizer, le, names, saved_embeds)
+            cur_names, cur_prob, temp = remove_duplicate(cur_names, temp, cur_prob)
+            face_locations = temp
+            face_names = cur_names
+            probability = cur_prob
+            face_locations, face_names, probability = remove_unknown(face_locations, face_names, probability)
             frame = tag(frame, face_locations, face_names, probability)
             timeUsed = (timeit.default_timer() - start)
             if timeUsed != 0:

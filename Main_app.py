@@ -16,7 +16,6 @@ from utillities_detection import initialiseDetector, detect
 from utilities_recognition import initialiseRecognizer, recognise
 from utilities_tracking import track, tagUI, remove_duplicate, update, remove_unknown
 import dlib
-import multiprocessing.dummy as mp
 # from tkinter.ttk import *
 
 
@@ -54,9 +53,7 @@ class Fyp:
         self.counter_test = None
         self.fps_avr = 0
         self.frame_count = 0
-        self.n_processors = 8
         self.trackers = []
-        self.pool = mp.Pool(processes=self.n_processors)
 
         # login window ##################
         self.login = Toplevel()
@@ -423,8 +420,8 @@ class Fyp:
                         ## track the person by using previous frame and current frame face locations
                         results = []
                         for tracker in self.trackers:
-                            output = self.pool.apply_async(track, [tracker, frame])
-                            results.append(output.get())
+                            output = track(tracker, frame)
+                            results.append(output)
                         self.face_locations = results
 
                     frame = tagUI(frame, self.face_locations, self.face_names, self.probability, self.track)

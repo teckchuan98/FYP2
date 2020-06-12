@@ -14,7 +14,7 @@ def initialise_video_test():
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
-    video_path= 'face_recognition_video_test_video/None2'
+    video_path= 'face_recognition_video_test_video/None3'
     video_capture = cv2.VideoCapture(video_path + ".mp4")
     output_path = video_path + "_output.mp4"
 
@@ -197,7 +197,7 @@ def remove_unknown(face_location, face_name, prob):
 
     return result_loc, result_name, result_prob
 
-def track_kcf(tracker, frame):
+def track_other_tracker(tracker, frame):
     ok, bbox = tracker.update(frame)
     left, top, right, bottom = bbox
     return int(top), int(right), int(bottom), int(left)

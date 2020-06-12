@@ -2,7 +2,6 @@ import cv2
 import timeit
 from Unit_Testing_Performance.utilities2 import detect, recognise, track, tag, update, remove_duplicate,initialise_video_test, remove_unknown
 import dlib
-import multiprocessing.dummy as mp
 
 def main():
     result_file, ort_session, input_name, recognizer, le, (saved_embeds, names), video_capture, w, h, out = initialise_video_test()
@@ -19,9 +18,7 @@ def main():
     frame_count = 0
     fps_avr = 0
     result_per_sec = set()
-    n_processors = 8
     trackers = []
-    pool = mp.Pool(processes=n_processors)
 
     while True:
         redetect = (redetect + 1) % redetect_freqeunt
@@ -58,8 +55,8 @@ def main():
 
                 results = []
                 for tracker in trackers:
-                    output = pool.apply_async(track, [tracker,frame])
-                    results.append(output.get())
+                    output =track (tracker,frame)
+                    results.append(output)
                 face_locations = results
 
             frame = tag(frame, face_locations, face_names, probability)
