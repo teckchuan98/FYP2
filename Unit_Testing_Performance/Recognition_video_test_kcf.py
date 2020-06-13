@@ -82,8 +82,8 @@ def main():
                 period_txt += "\n"
                 result_per_sec.clear()
                 result_file.write(period_txt)
-
-            cv2.putText(frame, "FPS: {:.2f}".format(fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
+            cur_fps_avr = fps_avr/frame_count
+            cv2.putText(frame, "FPS: {:.2f}".format(cur_fps_avr), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
 
             cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
             cv2.imshow('Video', frame)

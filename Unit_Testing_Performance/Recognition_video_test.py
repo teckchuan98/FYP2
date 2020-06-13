@@ -19,6 +19,7 @@ def main():
     fps_avr = 0
     result_per_sec = set()
     trackers = []
+    cur_avr_fps = 0
 
     while True:
         redetect = (redetect + 1) % redetect_freqeunt
@@ -85,7 +86,8 @@ def main():
                 result_per_sec.clear()
                 result_file.write(period_txt)
 
-            cv2.putText(frame, "FPS: {:.2f}".format(fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
+            cur_avr_fps = fps_avr/frame_count
+            cv2.putText(frame, "FPS: {:.2f}".format(cur_avr_fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
 
             cv2.namedWindow("Video", cv2.WINDOW_NORMAL)
             cv2.imshow('Video', frame)

@@ -14,7 +14,7 @@ def initialise_video_test():
     with open("embeddings.pkl", "rb") as f:
         (saved_embeds, names) = pickle.load(f)
 
-    video_path= 'face_recognition_video_test_video/None3'
+    video_path= 'face_recognition_video_test_video/Tom_Holland1'
     video_capture = cv2.VideoCapture(video_path + ".mp4")
     output_path = video_path + "_output.mp4"
 

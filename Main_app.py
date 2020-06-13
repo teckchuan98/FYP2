@@ -464,7 +464,8 @@ class Fyp:
                     self.fps = min(30, self.fps)
                     self.fps_avr += self.fps
                     self.frame_count += 1
-                    cv2.putText(frame, "FPS: {:.2f}".format(self.fps), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
+                    cur_fps_avr = self.fps_avr/self.frame_count
+                    cv2.putText(frame, "FPS: {:.2f}".format(cur_fps_avr), (0, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
                                 (255, 0, 0), 2)
 
                     cv2.putText(frame, self.timestamp, (int(self.vid.w) - 65, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1,
